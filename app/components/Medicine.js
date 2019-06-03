@@ -1,62 +1,33 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 
 import Button from '@material-ui/core/Button';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
 import TextField from '@material-ui/core/TextField';
-import type {MedicineFormStateType} from "../types/state/MedicineFormStateType";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import FormControl from "@material-ui/core/FormControl/FormControl";
-import Grid from "@material-ui/core/Grid/Grid";
-import MedicineTableView from "./MedicineView/MedicineTableView";
+import MedicineViewTest from "./TableViews/MedicineTableView";
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import AddIcon from '@material-ui/icons/Add';
 import Fab from '@material-ui/core/Fab';
-import DeleteIcon from '@material-ui/icons/Delete';
-import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import {openSnackBar} from '../features/ui';
 
-import Draggable from 'react-draggable';
-
-function papercomponent(props) {
-  return (
-    <Draggable>
-      <Paper {...props} />
-    </Draggable>
-  );
-}
 const styles = theme => ({
   medicineComponent: {
-    width: 'auto',
-    display: 'block', // Fix IE 11 issue.
-    marginTop: theme.spacing.unit*2,
-    [theme.breakpoints.up(800)]: {
-      width: 'auto',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-    },
-  },
-  absolute: {
-    position: 'absolute',
-    bottom: theme.spacing.unit * 2,
-    right: theme.spacing.unit * 3,
-  },
-  paper: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 2}px ${theme.spacing.unit * 2}px`,
+    height: 'auto',
+    marginTop: theme.spacing.unit * 8,
   },
   form: {
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing.unit,
   },
-
+  circularProgress: {
+    margin: theme.spacing.unit * 2,
+  },
   addMedReqTextFields: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
@@ -66,41 +37,25 @@ const styles = theme => ({
     position: 'relative',
     zIndex:'100',
     float: 'right',
+    marginRight:'3%',
+    marginTop:'1%'
   }
 });
 
-type Props = {
-  medicineForm: MedicineFormStateType,
-  setForm: (form: string) => void,
-  setName: (name: string) => void,
-  setStrength: (strength: string) => void,
-  setFrequency: (frequency: string) => void,
-  setRemark: (remark: string) => void,
-  setSubmitted: (submitted: boolean) => void
-};
+class Medicine extends Component {
 
-class Medicine extends React.PureComponent<Props, any> {
-
-  constructor(props: Props, state: any) {
+  constructor(props) {
     super(props);
-    console.log('in Medicine constructor');
-    console.log(props);
-
     this.state = {
-      form:'',
-      mname:'',
-      frequency:'',
+      product_name:'',
+      type:'',
+      generic:'',
       strength:'',
-      remark:'',
+      indication:'',
       open: false,
-      vertical: 'top',
-      horizontal: 'center',
-      firstline:'',
-      secondline : '',
-
+      loading:false,
+      success: false
     };
-
-    this.props.setSubmitted(false);
   }
   handleClickOpen = () => {
     this.setState({ open: true });
@@ -114,81 +69,77 @@ class Medicine extends React.PureComponent<Props, any> {
     const name = event.target.name;
     const value = event.target.value;
 
-    console.log(this.props);
     // // If the user is editting again submitted must be false...
-    if (value == "") {
-      this.props.setSubmitted(false);
-    }
+    // if (value == "") {
+    //   this.props.setSubmitted(false);
+    // }
 
     switch (name) {
-      case "form":
-        this.setState({form:value});
-        this.props.setForm(value);
+      case "product_name":
+
+        this.props.setProductName(value);
+        this.setState({product_name:value});
         break;
 
-      case "name":
-        this.setState({mname:value});
-        this.props.setName(value);
+      case "type":
+
+        this.props.setType(value);
+        this.setState({type:value});
         break;
 
       case "strength":
-        this.setState({strength:value});
+
         this.props.setStrength(value);
+        this.setState({strength:value});
         break;
-      case "frequency":
-        this.setState({frequency:value});
-        this.props.setFrequency(value);
+      case "generic":
+
+        this.props.setGeneric(value);
+        this.setState({generic:value});
         break;
-      case "remark":
-        this.setState({remark:value});
-        this.props.setRemark(value);
+      case "indication":
+
+        this.props.setIndication(value);
+        this.setState({indication:value});
         break;
     }
-    const { form, mname,frequency,strength,remark } = this.state;
-    let fistline = form + ' ' + mname + ' ' + strength;
-    let secondline = frequency + '\t' + remark ;
-
-    this.setState({firstline : fistline , secondline:secondline});
   }
-
-  handleSubmit(event: any, target: any) {
+  //Todo NAKIB : If save medicine is success, then Add Medicine Dialogue schould close automatically and show sucess result using snackbar
+  componentWillReceiveProps(nextProps){
+    if(nextProps.medicineState.saveMedicineSuccess){
+			this.setState({
+        open:false
+      });
+      //this.props.openSnackBar("New medicine added!",'success');
+		}
+    this.setState({
+      loading:false
+    });
+  }
+  handleSubmit(event) {
     event.preventDefault();
-    this.props.setSubmitted(true);
-    const { form, name,frequency,strength,remark } = this.state; // get the values from the state
-    let newMedicine = {form:form,name:name, frequency:frequency, remark:remark, strength:strength}; // create a new medicine by passing the values as object to the service
-    this.props.saveMedicine(newMedicine);
-
+    this.setState({
+      loading:true
+    });
+    const {  product_name, type, generic, strength, indication } = this.state;
+    const newMedicine = {product_name:product_name,type:type, generic:generic, indication:indication, strength:strength}; // create a new medicine by passing the values as object to the service
+    this.props.saveMedicine(newMedicine)
   }
 
-  /** For Snackbar to be used later on for success or failure notification
-  handleClick = state => () => {
-    this.setState({ open: true, ...state });
-  };
-
-  handleClose = () => {
-    this.setState({ open: false });
-  }; */
   render() {
-
    const {
-     currentMedicineForm,
-     currentMedicineName,
-     currentMedicineStrength,
-     currentMedicineFrequency,
-     currentMedicineRemark,
-     submitted
-    } = this.props.medicineForm;
-    const { vertical, horizontal, open , firstline, secondline} = this.state;
+     product_name,
+     type,
+     strength,
+     generic,
+     indication,
+     submitted,
+     medicineList
+    } = this.props.medicineState;
 
-    const preview =
-      <div>
-        <p>
-          {firstline}
-        </p>
-        <p>
-          {secondline}
-        </p>
-    </div>;
+    const {
+      medicineState
+    } = this.props;
 
     const { classes } = this.props;
     return (
@@ -197,8 +148,6 @@ class Medicine extends React.PureComponent<Props, any> {
         <div className={classes.addMedicineDialogueBox}>
 
           <Dialog
-            disableBackdropClick
-            disableEscapeKeyDown
             open={this.state.open}
             onClose={this.handleClose}
           >
@@ -210,62 +159,60 @@ class Medicine extends React.PureComponent<Props, any> {
                         this.handleSubmit(event, target);
                       }}
                 >
-
                   <TextField
                     required={true}
-                    id="form"
-                    name="form"
-                    label="Form"
+                    id="type"
+                    name="type"
+                    label="Type"
                     className={classes.addMedReqTextFields}
                     margin="normal"
-                    value={currentMedicineForm}
+                    value={type}
                     onChange={(event: any, target: any) => {
                       this.handleChange(event, target);
                     }}
                   />
                   <TextField
                     required={true}
-                    id="name"
-                    name="name"
-                    label="Name"
+                    id="product_name"
+                    name="product_name"
+                    label="Product Name"
                     className={classes.addMedReqTextFields}
                     margin="normal"
-                    value={currentMedicineName}
+                    value={product_name}
                     onChange={(event: any, target: any) => {
                       this.handleChange(event, target);
                     }}
                   />
                   <TextField
-                    required={true}
                     id="strength"
                     name="strength"
                     label="Strength"
                     className={classes.addMedReqTextFields}
                     margin="normal"
-                    value={currentMedicineStrength}
+                    value={strength}
                     onChange={(event: any, target: any) => {
                       this.handleChange(event, target);
                     }}
                   />
                   <TextField
-                    id="frequency"
-                    name="frequency"
-                    label="Frequency"
+                    id="generic"
+                    name="generic"
+                    label="Generic"
                     className={classes.addMedReqTextFields}
                     margin="normal"
-                    value={currentMedicineFrequency}
+                    value={generic}
                     onChange={(event: any, target: any) => {
                       this.handleChange(event, target);
                     }}
                   />
                   <TextField
-                    id="remark"
-                    name="remark"
-                    label="Remark"
+                    id="indication"
+                    name="indication"
+                    label="Indication"
                     className={classes.addMedReqTextFields}
                     margin="normal"
                     multiline={true}
-                    value={currentMedicineRemark}
+                    value={indication}
                     onChange={(event: any, target: any) => {
                       this.handleChange(event, target);
                     }}
@@ -282,6 +229,11 @@ class Medicine extends React.PureComponent<Props, any> {
                   </Button>
                 </form>
               </FormControl>
+              {this.state.loading
+                ? (
+                  <CircularProgress className={classes.circularProgress}/>
+                ) : null
+              }
 
             </DialogContent>
             <DialogActions>
@@ -291,20 +243,15 @@ class Medicine extends React.PureComponent<Props, any> {
             </DialogActions>
           </Dialog>
         </div>
-
-          {/*<Typography className={classes.instructions}>
-            Displayed as in Prescription
-          </Typography>
-          {preview} */}
           <div>
             <div className={classes.addMedicineBtn}>
             <Tooltip title="Add" aria-label="Add">
-              <Fab color="secondary" onClick={this.handleClickOpen}>
+              <Fab color="secondary" size="small" onClick={this.handleClickOpen}>
                 <AddIcon />
               </Fab>
             </Tooltip>
             </div>
-            <MedicineTableView />
+            <MedicineViewTest medicineState={medicineState}/>
           </div>
 
 

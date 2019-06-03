@@ -1,38 +1,36 @@
 // @flow
 import React, { Component } from 'react';
-import type {MedicineFormStateType} from "../types/state/MedicineFormStateType";
 import { withStyles } from '@material-ui/core/styles';
+import TreatmentTableView from './TableViews/TreatmentTableView';
+
 const styles = theme => ({
   treatment: {
-    width: '100%',
     height: '100%',
     marginTop: theme.spacing.unit * 8,
   }
 });
-type Props = {
-  medicineForm: MedicineFormStateType,
-  setForm: (form: string) =>  void,
-  setName: (name: string) => void,
-  setStrength: (strength: string) => void,
-  setFrequency: (frequency: string) => void,
-  setRemark: (remark: string) => void,
-  setSubmitted: (submitted: boolean) => void
-};
 
-class Treatment extends React.Component<Props, any> {
+class Treatment extends React.Component{
 
-  constructor(props: Props, state: any) {
+  constructor(props) {
     super(props);
-    console.log('in Treatment constructor');
-    console.log(props);
   }
+
 
     render() {
     const { classes } = this.props;
+      console.log('in Treatment Component');
+      const {treatmentState, medicineState , saveMedicine , updateTreatmentMedicine, saveTreatment} = this.props;
+
     return (
       <div className={classes.treatment}>
-        <h1> Treatment </h1>
-        <h2> Code me! </h2>
+       <TreatmentTableView
+         medicineState={medicineState}
+         treatmentState={treatmentState}
+         saveMedicine={saveMedicine}
+         updateTreatmentMedicine={updateTreatmentMedicine}
+         saveTreatment={saveTreatment}
+       />
       </div>
     );
   }

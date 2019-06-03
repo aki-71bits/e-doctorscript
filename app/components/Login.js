@@ -13,9 +13,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 
 import { withStyles } from '@material-ui/core/styles';
 import Background from '../assets/page.jpg';
-
-import type {LoginFormStateType} from "../types/state/LoginFormStateType";
-import type {AuthenticationStateType} from "../types/state/AuthenticationStateType";
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 
 const styles = theme => ({
@@ -23,6 +21,10 @@ const styles = theme => ({
       flexGrow: 1,
       height: "100%",
     },
+  circularProgress: {
+    margin: theme.spacing.unit * 2,
+    marginLeft: '43%',
+  },
     loginComponent: {
         width: 'auto',
         display: 'block', // Fix IE 11 issue.
@@ -78,25 +80,18 @@ const styles = theme => ({
         fontSize: '13px',
     },
   });
-  type Props = {
-    loginForm: LoginFormStateType,
-    authentication: AuthenticationStateType,
-    logout: () => void,
-    login: (username: string, passwors: string) => void,
-    setUserName: (username: string) => void,
-    setPassword: (password: string) => void,
-    setSubmitted: (submitted: boolean) => void
-  };
-
-class Login extends React.Component{
-
-    constructor(props: Props, state: any) {
+class Login extends Component{
+    constructor(props) {
         super(props);
-        console.log('in Login constructor');
-        this.props.logout(false);
-        this.props.setUserName("");
-        this.props.setPassword("");
-        this.props.setSubmitted(false);
+      const isDevEnv = process.env.NODE_ENV !== 'production';
+
+      this.state = {
+        email: isDevEnv ? 'test@test.com' : '',
+        password: isDevEnv ? '1234' : '',
+        stayLoggedIn: false,
+      };
+      this.handleChange = this.handleChange.bind(this);
+      this.handleSignIn = this.handleSignIn.bind(this);
     }
 
   handleChange(event: any, target: any) {
@@ -130,10 +125,41 @@ class Login extends React.Component{
       // No need to do anything as validation will kick in due to submitted status changing
     }
   }
-    render(){
-        const { classes } = this.props;
-        const {currentUserName, currentPassword} = this.props.loginForm;
-        return(
+  handleChangeText(event) {
+    // event.target.name is the name of the prop that should update,
+    // event.target.value is the current value of that prop in the view
+    this.setState({ [event.target.name]: event.target.value });
+  }
+
+  // Sign In function that calls the login function
+  handleSignIn(event) {
+    // this prevents the default action to trigger
+    // We need it to prevent the application from reloading when submitting
+    event.preventDefault();
+
+    // get the login function from the props that the container gave us
+    const { login } = this.props;
+
+    // get the user-written credentials from the state of this component
+    const { email, password } = this.state;
+
+    // just call the login function with the credentials
+    login(email, password);
+
+  }
+
+  render(){
+    const {
+      classes,
+      loggingIn,
+    } = this.props;
+
+    const {
+      email,
+      password
+    } = this.state;
+
+    return(
             <Grid container className={classes.root}>
                 <Grid item xs={6}>
                   <div className={classes.loginSection}>
@@ -151,24 +177,24 @@ class Login extends React.Component{
                     </Typography>
 
                     <form className={classes.form}
-                    onSubmit={(event: any, target: any) => {
-                    this.handleSubmit(event, target);
+                    onSubmit={(event: any) => {
+                    this.handleSignIn(event);
                     }}
                     >
                     <FormControl margin="normal" required fullWidth>
                         <InputLabel htmlFor="email">Username</InputLabel>
-                        <Input id="email" name="email" autoComplete="email" autoFocus value={currentUserName}
-                            onChange={(event: any, target: any) => {
-                            this.handleChange(event, target);
+                        <Input id="email" name="email" autoComplete="email" autoFocus value={email}
+                            onChange={(event: any) => {
+                            this.handleChangeText(event);
                             }}
 
                         />
                     </FormControl>
                     <FormControl margin="normal" required fullWidth>
                         <InputLabel htmlFor="password">Password</InputLabel>
-                        <Input name="password" type="password" id="password" autoComplete="current-password" value={currentPassword}
-                        onChange={(event: any, target: any) => {
-                        this.handleChange(event, target);
+                        <Input name="password" type="password" id="password" autoComplete="current-password" value={password}
+                        onChange={(event: any) => {
+                        this.handleChangeText(event);
                         }}
 
                         />
@@ -193,7 +219,13 @@ class Login extends React.Component{
                     >
                         Login
                     </Button></center>
-                    </form>
+                      {loggingIn
+                        ? (
+                          <CircularProgress className={classes.circularProgress}/>
+                        ) : null
+
+                      }
+                        </form>
                 </Paper>
                 </Grid>
             </Grid>

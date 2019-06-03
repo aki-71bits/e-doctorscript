@@ -27,7 +27,6 @@ const muiTheme = createMuiTheme({
     MuiIconButton: {
       root: {
         marginLeft:'5px',
-        color:'#fff',
         padding:'7px',
       },
     },
@@ -64,7 +63,7 @@ const muiTheme = createMuiTheme({
       },
       noWrap:{
         overflow:'visible',
-      }
+      },
     },
     MuiListItemIcon:{
       root:{
@@ -79,6 +78,11 @@ const muiTheme = createMuiTheme({
     MuiGrid:{
       container:{
         backgroundColor: "inherit"
+      }
+    },
+    MuiExpansionPanelSummary:{
+      content:{
+        paddingRight: '0px'
       }
     }
   },

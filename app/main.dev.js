@@ -13,7 +13,8 @@
 import { app, BrowserWindow } from 'electron';
 import MenuBuilder from './menu';
 const {ipcMain} = require('electron');
-
+const fs = require('fs');
+let workerWindow=null;
 // if (process.env.NODE_ENV === 'production') {
 //
 //   updater.init({
@@ -40,6 +41,7 @@ const {ipcMain} = require('electron');
 // }
 
 let mainWindow = null;
+
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -85,16 +87,26 @@ app.on('ready', async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
-    resizable: false
-  });
+    height:728,
+    width:1024,
+    minHeight:728,
+    minWidth:1024,
+    center:true,
 
+  });
+  workerWindow = new BrowserWindow({show: false, allowEval: true});
+  workerWindow.loadURL("file://" + __dirname + "/prescription.html");
+  // workerWindow.hide();
+  workerWindow.webContents.closeDevTools();
+  workerWindow.on("closed", () => {
+    workerWindow = undefined;
+  });
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
   mainWindow.webContents.on('did-finish-load', () => {
+
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
@@ -104,6 +116,7 @@ app.on('ready', async () => {
       mainWindow.show();
       mainWindow.focus();
     }
+
   });
 
   mainWindow.on('closed', () => {
@@ -116,11 +129,45 @@ app.on('ready', async () => {
 });
 
 ipcMain.on('resize-me-please', (event, arg) => {
-
   console.log(mainWindow.isResizable());
   if (arg) {
-    mainWindow.setSize(1024,728);
+    mainWindow.unmaximize();
+    mainWindow.setResizable(false);
+  }else{
+    mainWindow.setResizable(true);
+    mainWindow.maximize();
   }
-  mainWindow.setResizable(!arg);
+});
 
+ipcMain.on("printPDF", (event: any, content: any) => {
+  console.log("printPDF");
+  workerWindow.webContents.send("printPDF", content);
+});
+// when worker window is ready
+ipcMain.on("readyToPrintPDF", (event, options) => {
+  console.log("readyToPrintPDF");
+  console.log(options);
+  workerWindow.webContents.print(options);
+});
+
+ipcMain.on('fetch-system-printers', (event, arg) => {
+  event.returnValue = mainWindow.webContents.getPrinters();
+});
+
+ipcMain.on('generate-pdf', (event, arg) => {
+  console.log("generate pdf request");
+  workerWindow.webContents.printToPDF({}, (error, data) => {
+    if (error) throw error;
+    event.returnValue = data;
+    // fs.writeFile('./app/print.pdf', data, (error) => {
+    //   if (error) throw error;
+    //
+    // })
+    console.log('Write PDF successfully.');
+  });
+});
+
+ipcMain.on("updateTemplateRequest", (event: any, content: any) => {
+  console.log("updateTemplate", content);
+  workerWindow.webContents.send("updateTemplate", content);
 });
