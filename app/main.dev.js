@@ -10,35 +10,42 @@
  *
  * @flow
  */
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, autoUpdater, dialog } from 'electron';
 import MenuBuilder from './menu';
 const {ipcMain} = require('electron');
-const fs = require('fs');
+
 let workerWindow=null;
-// if (process.env.NODE_ENV === 'production') {
-//
-//   updater.init({
-//     checkUpdateOnStart: true,
-//     autoDownload: true,
-//     url: '../updates.json',
-//   });
-//
-//   updater.on('update-downloaded', () => {
-//     menuBuilder.informAboutUpdate();
-//   });
-//
-//   updater.on('checking-for-update', () => {
-//     console.log('Clays Code: checking for updates...');
-//   });
-//
-//   updater.on('update-available', () => {
-//     console.log('Clays Code: update is available!');
-//   });
-//
-//   updater.on('update-downloading', () => {
-//     console.log('Clays Code: downloading update...');
-//   });
-// }
+
+if (process.env.NODE_ENV === 'production') {
+  const server = 'https://hazel-i54kxcagv.now.sh';
+  const feed = `${server}/update/${process.platform}/${app.getVersion()}`;
+
+  autoUpdater.setFeedURL(feed);
+
+  setInterval(() => {
+    console.log("Checking for updates");
+    autoUpdater.checkForUpdates()
+  }, 10000);
+
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+    const dialogOpts = {
+      type: 'info',
+      buttons: ['Restart', 'Later'],
+      title: 'Application Update',
+      message: process.platform === 'win32' ? releaseNotes : releaseName,
+      detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+    };
+
+    dialog.showMessageBox(dialogOpts, (response) => {
+      if (response === 0) autoUpdater.quitAndInstall()
+    })
+  });
+
+  autoUpdater.on('error', message => {
+    console.error('There was a problem updating the application')
+    console.error(message)
+  });
+}
 
 let mainWindow = null;
 
