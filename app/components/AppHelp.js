@@ -22,7 +22,7 @@ class AppHelp extends React.Component{
 
     return(
       <Grid container className={classes.root}>
-        <h1> Help View Test </h1>
+        <h1> Help View </h1>
       </Grid>
     )
   }

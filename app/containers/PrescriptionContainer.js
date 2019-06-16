@@ -9,6 +9,7 @@ import {setAdvice , setPatientAge, setCC, setMedicine , setOE , setPatientEmail,
   updateMedicineRemark, updateMedicineStrength, updateMedicineType, deleteMedicine, deleteDiagnosis, setDiagnosis,
   updateDiagnosis , resetState} from "../features/prescription";
 
+import {openSnackBar} from "../features/ui";
 
 const mapStateToProps = state => ({
   medicineState: state.medicineState,
@@ -24,7 +25,7 @@ const mapDispatchToProps = {
   setPatientMobile, setPatientName , setPatientPatientId , setPatientSex , setTests ,
   deleteCC, updateCC , deleteOE , updateOE , updateTest, deleteTest, updateMedicineFequency, updateMedicineName,
   updateMedicineRemark, updateMedicineStrength, updateMedicineType, deleteMedicine, deleteDiagnosis, setDiagnosis,
-  updateDiagnosis, resetState
+  updateDiagnosis, resetState, openSnackBar
 };
 
 class PrescriptionContainer extends Component {
@@ -42,7 +43,7 @@ class PrescriptionContainer extends Component {
       setPatientMobile, setPatientName , setPatientPatientId , setPatientSex , setTests ,
       deleteCC, updateCC , deleteOE , updateOE , updateTest, deleteTest, updateMedicineFequency, updateMedicineName,
       updateMedicineRemark, updateMedicineStrength, updateMedicineType, deleteMedicine, deleteDiagnosis, setDiagnosis,
-      updateDiagnosis, settingsState, usermanagementState , resetState
+      updateDiagnosis, settingsState, usermanagementState , resetState, openSnackBar
     } = this.props;
     return (
       <PrescriptionWritting
@@ -82,6 +83,8 @@ class PrescriptionContainer extends Component {
         setPatientName={setPatientName}
         setPatientPatientId={setPatientPatientId}
         setPatientSex={setPatientSex}
+
+        openSnackBar={openSnackBar}
 
       />
     );

@@ -59,6 +59,13 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "./app/prescription.html",
+        "to": "prescription.html",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "productName": "e-Prescription",
@@ -241,10 +248,8 @@
     "@fortawesome/fontawesome-free": "^5.5.0",
     "@material-ui/core": "^3.6.1",
     "@material-ui/icons": "^3.0.1",
-    "autosuggest-highlight": "^3.1.1",
     "classnames": "^2.2.6",
     "devtron": "^1.4.0",
-    "downshift": "^3.2.10",
     "electron-debug": "^2.0.0",
     "electron-log": "^3.0.1",
     "electron-updater": "^3.2.3",
@@ -253,7 +258,6 @@
     "imagemagick": "^0.1.3",
     "immutability-helper": "^3.0.0",
     "install": "^0.12.2",
-    "lodash.deburr": "^4.1.0",
     "material-ui": "^0.20.2",
     "material-ui-pickers": "^2.0.4",
     "mgr-pdf-viewer-react": "^1.0.3",
@@ -263,9 +267,7 @@
     "pg-hstore": "^2.3.2",
     "prop-types": "^15.6.2",
     "react": "^16.6.3",
-    "react-autosuggest": "^9.4.3",
-    "react-bootstrap-table-next": "^2.1.2",
-    "react-bootstrap-table2-editor": "^1.2.2",
+    "react-datepicker": "^2.7.0",
     "react-dom": "^16.6.3",
     "react-hot-loader": "^4.3.12",
     "react-redux": "^5.1.1",
@@ -279,7 +281,8 @@
     "sequelize": "^4.42.0",
     "sequelize-cli": "^5.4.0",
     "source-map-support": "^0.5.9",
-    "sqlite3": "^4.0.4"
+    "sqlite3": "^4.0.4",
+    "uuid": "^3.3.2"
   },
   "devEngines": {
     "node": ">=7.x",

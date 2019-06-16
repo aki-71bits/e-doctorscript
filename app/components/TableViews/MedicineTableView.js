@@ -25,6 +25,7 @@ import Button from '@material-ui/core/Button';
 import UpdateMedicine from './../updateMedicine';
 import { Typography } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+import Fab from "@material-ui/core/Fab/Fab";
 
 
 
@@ -120,18 +121,28 @@ const styles = theme => ({
   medicineListSearch: {
     padding: 10,
   },
-  
+  TableCell:{
+    '&:hover': {
+      background:'#f0f0f0',
+      cursor:'pointer',
+    }
+  },
+  iconBtn:{
+    '&:hover': {
+      background:'#f0f0f0',
+      cursor:'pointer',
+    }
+  }
 });
 
 class MedicineTableView extends React.Component {
   constructor(props) {
     super(props);
-    console.log('In MedicineView');
-    console.log(props);
+    console.log('In Medicine Table View');
     this.state = {
       rows: [],
       page: 0,
-      rowsPerPage: 5,
+      rowsPerPage: 10,
       searchOn:false,
       filtered:[],
       UpdateDialog: false,
@@ -141,6 +152,20 @@ class MedicineTableView extends React.Component {
     };
   }
 
+  componentWillMount(){
+    this.setState({
+      rows : this.props.medicineState.medicineList
+    });
+  }
+
+  componentDidUpdate(prevProps) {
+    console.log("Updating Table view Component");
+    if (this.props.medicineState.medicineList !== prevProps.medicineState.medicineList) {
+      this.setState({
+        rows : this.props.medicineState.medicineList
+      })
+    }
+  }
 
   handleChangePage = (event, page) => {
     this.setState({ page });
@@ -149,6 +174,7 @@ class MedicineTableView extends React.Component {
   handleChangeRowsPerPage = event => {
     this.setState({ page: 0, rowsPerPage: event.target.value });
   };
+
   SearchMedicine = event =>{
     let keyword = event.target.value;
     this.setState({
@@ -164,49 +190,41 @@ class MedicineTableView extends React.Component {
       })
     }
   }
-  componentWillMount(){
-    this.setState({
-      rows : this.props.medicineState.medicineList
-    });
-  }
+
+
+
   handleShowUpdateDialog=(obj)=>{
     this.setState({
       UpdateDialog:true,
       medDetails:obj
     })
-  }
+  };
   handleClose = () => {
     this.setState({ UpdateDialog: false });
   };
-  handleDelete=(med)=>{
-    this.setState({
-      deleteDialog:true,
-      deletableMed:med
-    })
-  }
-  handleCloseDelete=()=>{
-    this.setState({
-      deleteDialog:false,
-    }) 
-  }
+  handleDeleteMedicine=(med)=>{
+    console.log("Delete medicine : ", med.medicine_id);
+    this.props.deleteMedicine(med.medicine_id);
+  };
+
   render() {
-    const { classes } = this.props;
+    const { classes , updateMedicine} = this.props;
     const { rows, rowsPerPage, page } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
     let medTable;
     if (rows.length !== 0){
       medTable = !this.state.searchOn ?rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map( (medicine, index) => {
         return(
-          <TableRow key={index}>
-            <TableCell component="th" scope="row"onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.product_name}</TableCell>
-            <TableCell component="th" scope="row"onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.types}</TableCell>
-            <TableCell component="th" scope="row"onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.generic}</TableCell>
-            <TableCell component="th" scope="row"onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.strength}</TableCell>
-            <TableCell component="th" scope="row"onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.indication}</TableCell>
+          <TableRow key={index} className={classes.TableCell}>
+            <TableCell  onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row">{medicine.product_name}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row">{medicine.types}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row">{medicine.generic}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row">{medicine.strength}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row">{medicine.indication}</TableCell>
             <TableCell component="th" scope="row">
             <Tooltip title="Delete">
-              <IconButton onClick={()=>this.handleDelete(n)}>
-                  <DeleteIcon/>
+              <IconButton onClick={()=>this.handleDeleteMedicine(medicine)} style={{hoverColor:'#c62929'}}>
+                  <DeleteIcon />
                 </IconButton>
             </Tooltip>
             </TableCell>
@@ -214,18 +232,18 @@ class MedicineTableView extends React.Component {
         )
       }):this.state.filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((medicine, index) => {
         return(
-          <TableRow key={index}>
-            <TableCell component="th" scope="row" onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.product_name}</TableCell>
-            <TableCell component="th" scope="row" onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.types}</TableCell>
-            <TableCell component="th" scope="row" onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.generic}</TableCell>
-            <TableCell component="th" scope="row" onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.strength}</TableCell>
-            <TableCell component="th" scope="row" onClick={()=>this.handleShowUpdateDialog(medicine)}>{medicine.indication}</TableCell>
+          <TableRow key={index} className={classes.TableCell} >
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)}  component="th" scope="row" >{medicine.product_name}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)}  component="th" scope="row" >{medicine.types}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row" >{medicine.generic}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row" >{medicine.strength}</TableCell>
+            <TableCell onClick={()=>this.handleShowUpdateDialog(medicine)} component="th" scope="row" >{medicine.indication}</TableCell>
             <TableCell component="th" scope="row">
-            <Tooltip title="Delete">
-              <IconButton onClick={()=>this.handleDelete(n)}>
-                  <DeleteIcon/>
+              <Tooltip title="Delete">
+                <IconButton onClick={()=>this.handleDeleteMedicine(medicine)} className={classes.iconBtn}>
+                  <DeleteIcon />
                 </IconButton>
-            </Tooltip>
+              </Tooltip>
             </TableCell>
           </TableRow>
         )
@@ -284,32 +302,16 @@ class MedicineTableView extends React.Component {
             open={this.state.UpdateDialog}
             onClose={this.handleClose}
           >
-          <UpdateMedicine name={"Normal Medicine"} obj={this.state.medDetails}/>
+          <UpdateMedicine
+            name={"Normal Medicine"}
+            obj={this.state.medDetails}
+            updateMedicine={updateMedicine}
+            handleUpdateDialogue={this.handleClose}
+          />
           <DialogActions>
               <Button onClick={this.handleClose} color="primary">
                 Ok
               </Button>
-            </DialogActions>
-        </Dialog>
-        {/* Delete Dialog */}
-        <Dialog
-            open={this.state.deleteDialog}
-            onClose={this.handleCloseDelete}
-          >
-          <DialogTitle>Are you Sure you want to delete?</DialogTitle>
-            <DialogContent>
-              
-                  <Typography>{this.state.deletableMed.product_name}</Typography>
-              
-            </DialogContent>
-          <DialogActions>
-              <Button onClick={this.handleCloseDelete} color="secondary" variant="contained">
-                Delete
-              </Button>
-              <Button onClick={this.handleCloseDelete} color="primary">
-                Cancel
-              </Button>
-              
             </DialogActions>
         </Dialog>
       </Paper>

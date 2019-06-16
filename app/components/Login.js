@@ -82,17 +82,33 @@ const styles = theme => ({
   });
 class Login extends Component{
     constructor(props) {
-        super(props);
+      super(props);
       const isDevEnv = process.env.NODE_ENV !== 'production';
 
       this.state = {
         email: isDevEnv ? 'test@test.com' : '',
         password: isDevEnv ? '1234' : '',
         stayLoggedIn: false,
+        loggingIn: false
       };
       this.handleChange = this.handleChange.bind(this);
       this.handleSignIn = this.handleSignIn.bind(this);
     }
+
+    componentWillMount(){
+      this.setState({
+        loggingIn: this.props.loggingIn
+      })
+    }
+
+  componentDidUpdate(prevProps){
+    if (this.props.loggingIn !== prevProps.loggingIn) {
+      this.setState({
+        loggingIn: this.props.loggingIn
+      })
+    }
+  }
+
 
   handleChange(event: any, target: any) {
     const name = event.target.name;
@@ -150,13 +166,12 @@ class Login extends Component{
 
   render(){
     const {
-      classes,
-      loggingIn,
-    } = this.props;
+      classes} = this.props;
 
     const {
       email,
-      password
+      password,
+      loggingIn
     } = this.state;
 
     return(
@@ -204,10 +219,11 @@ class Login extends Component{
                     <br/>
                     <Grid container className={classes.grid2}>
                         <Grid item xs={8}>
-                            <input type="checkbox" name="remember"/> Remember Me
+                            <input disabled={true} type="checkbox" name="remember"/> Remember Me
                         </Grid>
                         <Grid item xs={4} style={{marginTop:'3px',}}>
-                            <Link to="/forgetPassword">Forget Password</Link>
+                          Forget Password
+                            {/*<Link to="/forgetPassword">Forget Password</Link>*/}
                         </Grid>
                     </Grid>
                     <center><Button

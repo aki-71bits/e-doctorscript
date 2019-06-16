@@ -5,7 +5,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import FavoriteIcon from '@material-ui/icons/Favorite';
-import PersonPinIcon from '@material-ui/icons/PersonPin';
+import Tooltip from '@material-ui/core/Tooltip';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
@@ -33,6 +33,7 @@ const styles = theme => ({
     flexGrow: 1,
     height: "auto",
     marginTop: theme.spacing.unit * 8,
+    backgroundColor: 'white'
   },
   printerList:{
     minWidth: 600,
@@ -42,8 +43,8 @@ const styles = theme => ({
     display: 'inline-block',
     listStyleType: 'none',
     padding: '20px 10px 20px 10px',
-    width: 'auto',
-    height: '200px',
+    width: '30%',
+    height: '170px',
     position: 'relative',
     margin: 'inherit'
   },
@@ -391,9 +392,11 @@ class Settings extends React.Component{
     console.log("Inside Settings Component");
     console.log("State :" , this.state);
 
+    const {document} = this.props.settingsState;
+
     const {expanded, value, docUpdated, defaultTemplate, dr_name, dr_education, dr_specialist, education_institute, reg_no,
       center_text, chamber_name, chamber_address, chamber_timing, margin_top,
-      margin_bottom, margin_left, margin_right, document} = this.state;
+      margin_bottom, margin_left, margin_right} = this.state;
 
 
       return(
@@ -413,7 +416,7 @@ class Settings extends React.Component{
         </AppBar>
 
         {value === 0 &&
-        <div style={{ marginTop:'20px'}}>
+        <div style={{ marginTop:'20px', backgroundColor: 'white'}}>
           <span style={{padding:'4.5%'}}>
             Background Print
               <Switch
@@ -454,16 +457,28 @@ class Settings extends React.Component{
         <div className= {classes.settingsTemplateLayoutRoot}>
           <div className= {classes.settingsTemplateLayoutOptions}>
 
-            <span style={{marginLeft:'1.5%'}}>
-            Use default Template
+            <div style={{marginLeft:'0.5%'}}>
+              Use default Template
+              <Tooltip title="Print your Prescription using default template" aria-label="Add" >
               <Switch
                 checked={this.state.defaultTemplate}
                 onChange={this.handleprintTemplateChange('defaultTemplate')}
                 value="defaultTemplate"
               />
-            </span>
+              </Tooltip>
+            </div>
+
+            <div>
+              <Tooltip title="Information which appears on your Prescription Pad" aria-label="Add" >
+                <Typography variant="h6" component="h6" gutterBottom>
+                  Information for Prescription Pad
+                </Typography>
+              </Tooltip>
+            </div>
+
             <div className= {classes.LayoutOptionsContent}>
-              <div className= {classes.LayoutOptionsContentLeft}>
+
+              <div style={{display:'inline-block', width:'36%'}}>
                 <TextField disabled={true} onChange={this.handleSettingChange} id="dr_name" label="Dr Name" value={dr_name} className={classes.layoutOptionsTextfield}/>
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="dr_education" label="Education" value={dr_education} placeholder="Placeholder" className={classes.layoutOptionsTextfield} />
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="dr_specialist" label="Specialist" value={dr_specialist} placeholder="Placeholder" className={classes.layoutOptionsTextfield}/>
@@ -471,11 +486,13 @@ class Settings extends React.Component{
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="reg_no" label="Register No" value={reg_no} placeholder="Placeholder" className={classes.layoutOptionsTextfield} />
               </div>
 
-              <div className= {classes.LayoutOptionsContentCenter}>
+              <div>
+                <Tooltip title="Additional info at the center" aria-label="Add" style={{fontSize:'12px'}}>
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="center_text" label="Center Text" value={center_text} className={classes.layoutOptionsTextfield}/>
+                </Tooltip>
               </div>
 
-              <div className= {classes.LayoutOptionsContentRight}>
+              <div style={{display:'inline-block', width:'36%'}}>
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="chamber_name" label="Chamber Name" value={chamber_name} className={classes.layoutOptionsTextfield}/>
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="chamber_address" label="Chamber Address" value={chamber_address} className={classes.layoutOptionsTextfield}/>
                 <TextField disabled={!defaultTemplate} onChange={this.handleSettingChange} id="chamber_timing" label="Timing" value={chamber_timing} className={classes.layoutOptionsTextfield}/>
@@ -484,6 +501,7 @@ class Settings extends React.Component{
 
             </div>
             <div>
+              <Tooltip title="Print lines in the default template" aria-label="Add" style={{fontSize:'12px'}}>
               <FormControlLabel
                 control={
                   <Checkbox checked={this.state.printLines}
@@ -492,17 +510,20 @@ class Settings extends React.Component{
                 }
                 label="Display Lines"
               />
+              </Tooltip>
             </div>
-            <div className= {classes.LayoutOptionsMargin}>
+            <div style={{display:'inline-block', width:'40%'}}>
               <TextField onChange={this.handleSettingChange} id="margin_top" type="number" label="Top" value= {margin_top} className={classes.layoutOptionsTextfield}/>
               <TextField onChange={this.handleSettingChange} id="margin_bottom" type="number" label="Bottom" value= {margin_bottom} className={classes.layoutOptionsTextfield}/>
               <TextField onChange={this.handleSettingChange} id="margin_left" type="number" label="Left" value= {margin_left} className={classes.layoutOptionsTextfield}/>
               <TextField onChange={this.handleSettingChange} id="margin_right" type="number" label="Right" value= {margin_right} className={classes.layoutOptionsTextfield}/>
 
             </div>
+            <Tooltip title="Update default template and Preview" aria-label="Add" style={{fontSize:'12px'}}>
             <Button variant="contained" color="primary" className={classes.button}
                     onClick={this.updateTemplate}>Update Template
             </Button>
+            </Tooltip>
           </div>
         </div>
         }

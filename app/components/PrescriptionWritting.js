@@ -5,15 +5,15 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import IconButton from '@material-ui/core/IconButton';
-
+import Typography from '@material-ui/core/Typography';
 import Cancel from '@material-ui/icons/Delete';
 import Check from "@material-ui/icons/Add";
 import Info from "@material-ui/icons/info";
 import CCData from '../fakedata/cc_fake.json';
 import TestsData from '../fakedata/Tests_fake.json';
 import DiagnosisData from '../fakedata/diagnosis_fake.json';
-import TreatmentData from '../fakedata/Treatment_fake.json';
-
+import {IconFollowUp} from '../assets';
+import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -30,10 +30,16 @@ import Snackbar from '@material-ui/core/Snackbar';
 import CloseIcon from '@material-ui/icons/Close';
 import Done  from '@material-ui/icons/DoneAll';
 import InputAdornment from '@material-ui/core/InputAdornment';
-
 let update = require('immutability-helper');
 const ipcRenderer = require("electron").ipcRenderer;
+import DatePicker from "react-datepicker";
+const uuidv1 = require('uuid/v1');
+import 'react-datepicker/dist/react-datepicker-cssmodules.css';
+import Select from '@material-ui/core/Select';
 
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 const styles = theme => ({
   root:{
     padding: '1%',
@@ -41,12 +47,15 @@ const styles = theme => ({
     paddingTop: '70px',
     height:'100%',
   },
+
     rootContainer:{
+    overflow:'auto',
       height:'100%'
     },
-  container: {
+  patientContainer: {
     display: 'flex',
     flexWrap: 'wrap',
+    padding: '0 0 10px 4px'
   },
   actions: {
     display: 'flex',
@@ -67,8 +76,7 @@ const styles = theme => ({
     width: '90%',
   },
   textField2: {
-    marginRight:'4%',
-    width: '45%',
+    width: '100%',
   },
   cctextField:{
     width:'180px',
@@ -97,23 +105,23 @@ const styles = theme => ({
   },
   customCard:{
     width:'100%',
-    marginTop:'20px',
+    marginTop:'10px',
     padding:'0px'
   },
   leftGrid:{
-    //padding:'0% 1%',
+    padding: ' 10px',
     paddingTop:'0px',
     borderRight:'1px solid #D1D2D7',
     display:'table'
   },
  centerGrid:{
-    //padding:'0% 1%',
     paddingTop:'0px',
     borderRight:'1px solid #D1D2D7',
     height:'100%'
   },
   rightGrid:{
-    height:'100%'
+    height:'100%',
+    position:'relative'
   },
   iconBtn:{
     color:'#D9DADF',
@@ -158,9 +166,11 @@ const styles = theme => ({
   medicineListElem:{
     height:'auto' ,
     maxHeight:'400px',
-    position:'relative',
+    position:'relative'
+    ,
     overflowY:'auto',
-    overflowX:'hidden'
+    overflowX:'hidden',
+    margin: '10px'
   },
   listElmContent:{
     margin:'0px',
@@ -179,7 +189,25 @@ const styles = theme => ({
   },
   footer:{
     flexShrink: 0
-}
+},
+  datePicker:{
+    '&input': {
+      borderTop: 'none',
+      borderBottom: '1px solid',
+      borderRight: 'none',
+      borderLeft: 'none'
+    },
+  },
+  rightBottom:{
+    bottom: '11%',
+    width: '100%',
+    position: 'absolute',
+    height:'20%'
+  },
+  ageFormControl:{
+
+    marginTop:'16px'
+  }
 });
 
 
@@ -193,13 +221,14 @@ class PrescriptionWrittng extends React.Component{
       value:'',
       ccOnChange: false,
       ccFinalList:[],
-
+      startDate: new Date(),
       TestsFakeData: TestsData,
       TestsFiltered:[],
       Testsvalue:'',
       Testslist:[],
       TestsOnChange: false,
 
+      Treatments:[],
       DiagnosisFakeData: DiagnosisData,
       DiagnosisFiltered:[],
       Diagnosisvalue:'',
@@ -231,7 +260,7 @@ class PrescriptionWrittng extends React.Component{
       RemList:[],
       //RemOnchange:false,
 
-      SuggestionsData: TreatmentData,
+      SuggestionsData: [],
       SuggestionOn:false,
       SuggestionsFiltered:[],
 
@@ -247,118 +276,8 @@ class PrescriptionWrittng extends React.Component{
 
       Medicines:[] // For All medicines
     };
+    this.handleChange = this.handleChange.bind(this);
   }
-  printPrescription = () =>{
-    console.log("Print Prescription request");
-    console.log("Save Medicine");
-
-    let size = this.state.MedList.length;
-
-    let medList = [];
-
-    for(let i=0;i<size;i++){
-
-      let MedName = this.state.MedList[i].name;
-      let TypeName = this.state.TypeList[i].name;
-      let strengthName = this.state.StrenList[i].name;
-      let FrequencyName = this.state.FreqList[i].name;
-      let RemarkName = this.state.RemList[i].name;
-      let Idval = `${this.state.Medicines.length + 1}`;
-
-      let medicine = {id: Idval, product_name:MedName, type:TypeName, strength: strengthName, frequency: FrequencyName, remark: RemarkName};
-      console.log(medicine);
-      medList.push(medicine);
-      // //Checking if there is any duplicate for safety, if Save button is double pressed.
-      // let fl = 1;
-      // let loopMed = this.state.Medicines.map((j)=>{
-      //   if(j.product_name.toUpperCase() === MedName.toUpperCase() && j.strength.toUpperCase() === strengthName.toUpperCase()){
-      //     fl = 0;
-      //   }
-      // });
-      //
-      // if(fl==1){
-      //   this.setState((prevState) => ({
-      //     Medicines: [...prevState.Medicines, {id: Idval, product_name:MedName, type:TypeName, strength: strengthName, frequency: FrequencyName, remark: RemarkName}]
-      //   }));
-      // }
-    }
-
-
-    const {firstname , lastname} = this.props.usermanagementState.profile;
-    const username = firstname +` ` +lastname;
-
-    console.log(this.state);
-    const { dr_education, dr_specialist, education_institute, reg_no,
-      center_text, chamber_name, chamber_address, chamber_timing, margin_top,
-      margin_bottom, margin_left, margin_right, defaultTemplate, printLines} = this.props.settingsState;
-
-    let date = new Date();
-    const templateData = {
-      preview: false,
-      header_center_img : 'data:image/gif;base64,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',
-      header_left_img:'',
-      header_right_img:'',
-      content_main_right_rx_img: 'data:image/png;base64,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',
-      header_center_text: {
-        text1:center_text
-      },
-      header_left_text: {
-        dr_name: username,
-        dr_education: dr_education,
-        dr_specialist: dr_specialist,
-        education_institute: education_institute,
-        dr_reg: reg_no
-      },
-      header_right_text:{
-        chamber_name : chamber_name,
-        chamber_address: chamber_address,
-        chamber_timing: chamber_timing
-      },
-      header_footer_text:'',
-      defaultTemplate: defaultTemplate,
-      margins:{
-        top: margin_top,
-        bottom: margin_bottom,
-        left: margin_left,
-        right: margin_right
-      },
-      userTemplateSettings:{
-        patientDetail: true,
-        leftSideBar: true,
-        printLines: printLines
-      },
-      patient:{
-        name: `Name: ${this.state.PatientName}`,
-        sex: `Sex: ${this.state.Sex}`,
-        age: `Age: ${this.state.Age}Yrs`,
-        id: 'PID: 123456789',
-        date: `Date: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()} `
-      },
-      cc: this.props.prescriptionState.cc,
-      oe: this.props.prescriptionState.oe,
-      tests: this.props.prescriptionState.tests,
-      treatment: this.props.prescriptionState.diagnosis,
-      medicines: medList,
-      advice: this.props.prescriptionState.advice
-    };
-
-    const printerObj={
-      content: templateData,
-      options: {
-        silent: this.props.settingsState.backgroundPrint, //Don't ask user for print settings. Default is false.
-        printBackground: true, //Also prints the background color and image of the web page. Default is false.
-        deviceName: this.props.settingsState.defaultPrinter
-      }
-    };
-    console.log(printerObj);
-
-    ipcRenderer.send("printPDF", printerObj);
-
-  };
-  clearPrescription = () =>{
-    console.log("Clear Prescription request");
-    this.props.resetState();
-  };
   componentDidMount(){
     console.log(this.props.prescriptionState.cc);
     const {cc } = this.props.prescriptionState;
@@ -367,9 +286,143 @@ class PrescriptionWrittng extends React.Component{
     console.log(medicineData);
     this.setState({
       list : cc,
-      MedData:medicineData
+      MedData:medicineData,
+      Treatments: this.props.treatmentState.treatment,
+      SuggestionsData: this.props.treatmentState.treatment,
     });
   }
+
+  componentDidUpdate(prevProps){
+    let medicineData = this.props.medicineState.medicineList;
+    if (this.props.treatmentState.treatment !== prevProps.treatmentState.treatment) {
+      this.setState({
+        Treatments: this.props.treatmentState.treatment,
+        SuggestionsData: this.props.treatmentState.treatment,
+        MedData:medicineData,
+      })
+    }
+  }
+
+  handleChange(date) {
+    this.setState({
+      startDate: date
+    });
+  }
+
+
+  printPrescription = () =>{
+    console.log("Print Prescription request");
+
+
+    const {PatientName, Age,Sex,Mobile,Email, startDate} = this.state;
+
+    if (PatientName ===''){
+      this.props.openSnackBar("Please enter a Patient Name", 'info');
+    }else{
+      let size = this.state.MedList.length;
+      let medList = [];
+
+      for(let i=0;i<size;i++){
+
+        let MedName = this.state.MedList[i].name;
+        let TypeName = this.state.TypeList[i].name;
+        let strengthName = this.state.StrenList[i].name;
+        let FrequencyName = this.state.FreqList[i].name;
+        let RemarkName = this.state.RemList[i].name;
+        let Idval = `${this.state.Medicines.length + 1}`;
+
+        let medicine = {id: Idval, product_name:MedName, type:TypeName, strength: strengthName, frequency: FrequencyName, remark: RemarkName};
+        console.log(medicine);
+        medList.push(medicine);
+      }
+
+
+      const {firstname , lastname} = this.props.usermanagementState.profile;
+      const username = firstname +` ` +lastname;
+
+      console.log(this.state);
+      const { dr_education, dr_specialist, education_institute, reg_no,
+        center_text, chamber_name, chamber_address, chamber_timing, margin_top,
+        margin_bottom, margin_left, margin_right, defaultTemplate, printLines} = this.props.settingsState;
+
+      let date = new Date();
+      const templateData = {
+        preview: false,
+        header_center_img : 'data:image/gif;base64,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',
+        header_left_img:'',
+        header_right_img:'',
+        content_main_right_rx_img: 'data:image/png;base64,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',
+        header_center_text: {
+          text1:center_text
+        },
+        header_left_text: {
+          dr_name: username,
+          dr_education: dr_education,
+          dr_specialist: dr_specialist,
+          education_institute: education_institute,
+          dr_reg: reg_no
+        },
+        header_right_text:{
+          chamber_name : chamber_name,
+          chamber_address: chamber_address,
+          chamber_timing: chamber_timing
+        },
+        header_footer_text:'',
+        defaultTemplate: defaultTemplate,
+        margins:{
+          top: margin_top,
+          bottom: margin_bottom,
+          left: margin_left,
+          right: margin_right
+        },
+        userTemplateSettings:{
+          patientDetail: true,
+          leftSideBar: true,
+          printLines: printLines
+        },
+        patient:{
+          name: `Name: ${PatientName}`,
+          sex: `Sex: ${Sex}`,
+          age: `Age: ${Age}Yrs`,
+          id: 'PID: 123456789',
+          date: `Date: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()} `,
+          followupdate: `Follow up date: ${startDate.getDate()}/${startDate.getMonth()}/${startDate.getFullYear()}  ${startDate.getHours()}-${startDate.getMinutes()}`,
+        },
+        cc: this.props.prescriptionState.cc,
+        oe: this.props.prescriptionState.oe,
+        tests: this.props.prescriptionState.tests,
+        treatment: this.props.prescriptionState.diagnosis,
+        medicines: medList,
+        advice: this.props.prescriptionState.advice
+      };
+
+      const printerObj={
+        content: templateData,
+        options: {
+          silent: this.props.settingsState.backgroundPrint, //Don't ask user for print settings. Default is false.
+          printBackground: true, //Also prints the background color and image of the web page. Default is false.
+          deviceName: this.props.settingsState.defaultPrinter
+        }
+      };
+      console.log(printerObj);
+
+      ipcRenderer.send("printPDF", printerObj);
+    }
+  };
+  clearPrescription = () =>{
+    console.log("Clear Prescription request");
+    this.setState({
+      TempMedValue:'',
+      TempFreqValue:'',
+      TempRemValue:'',
+      TempStrenValue:'',
+      TempTypValue:'',
+
+    });
+
+    this.props.resetState();
+  };
+
   handlePatientDetailChange=(event)=>{
     let value = event.target.value;
     let id = event.target.id;
@@ -614,17 +667,17 @@ class PrescriptionWrittng extends React.Component{
   addCustomDiagnosis=()=>{
     let customItemValue = this.state.Diagnosisvalue;
     let fl = 1;
+    //for checking if it already exists in the list
     let loopDiag = this.state.Diagnosislist.map((j)=>{
       if(j.name.toUpperCase() === customItemValue.toUpperCase()){
         fl = 0;
       }
     });
     if(fl===1){
-      let latestId = `${this.state.Diagnosislist.length + 1}`;
+      let latestId = `${uuidv1()}`;
       const newDiagnosis={name: customItemValue , id: latestId};
       this.setState((prevState) => ({
         Diagnosislist: [...prevState.Diagnosislist, {name:customItemValue, id: latestId }],
-        DiagnosisFakeData : [...prevState.DiagnosisFakeData, {name:customItemValue, id: latestId }],
         Diagnosisvalue:''
       }));
       this.props.setDiagnosis(newDiagnosis);
@@ -644,10 +697,10 @@ class PrescriptionWrittng extends React.Component{
     });
     if(fl===1){
       this.setState((prevState) => ({
-        Diagnosislist: [...prevState.Diagnosislist, {name:item.name, id:item.id}],
+        Diagnosislist: [...prevState.Diagnosislist, {name:item.name, id:`${item.treatment_id}`}],
         Diagnosisvalue:''
       }));
-      const newDiagnosis = { name : item.name, id : item.id};
+      const newDiagnosis = { name : item.name, id : `${item.treatment_id}`};
       this.props.setDiagnosis(newDiagnosis);
       this.handleAddSuggestion(1);
     }
@@ -796,7 +849,7 @@ class PrescriptionWrittng extends React.Component{
       return c.id === target.id;
     });
     //update this object with new values
-    let updatedComment = update(data[commentIndex], {name: {$set: value} , id:{$set: id}});
+    let updatedComment = update(data[commentIndex], {name: {$set: value} , id:{$set: `${uuidv1()}`}});
 
     let newData = update(data, {
       $splice: [[commentIndex, 1, updatedComment]]
@@ -999,7 +1052,7 @@ class PrescriptionWrittng extends React.Component{
             let TypVal = i.type;
             if(TypVal == '')TypVal = "N/A";
 
-            let RemVal = i.indication;
+            let RemVal = i.remark;
             if(RemVal == '')RemVal = "N/A";
 
             let FreqVal = i.frequency;
@@ -1083,21 +1136,21 @@ class PrescriptionWrittng extends React.Component{
         </li>
       )
     }):null;
-    const Diagnosis = this.state.DiagnosisOnChange?this.state.DiagnosisFiltered.map((item)=>{
+    const Diagnosis = this.state.DiagnosisOnChange?this.state.Treatments.map((item)=>{
       return(
-        <li key={item.id} onClick={()=>this.addDiagnosis(item)} className={classes.searchKeyword}>
+        <li key={item.treatment_id} onClick={()=>this.addDiagnosis(item)} className={classes.searchKeyword}>
           {item.name}
         </li>
       )
     }):null;
     const Med = this.state.MedOnchange?this.state.MedFiltered.map((item)=>{
       return(
-        <li key={item.id} onClick={()=>this.addMed(item)} className={classes.searchKeyword}>
+        <li key={item.medicine_id} onClick={()=>this.addMed(item)} className={classes.searchKeyword}>
           {item.product_name} <i>{item.types}</i> {item.strength}
         </li>
       )
     }):null;
-    const SuggestionShow = this.state.SuggestionOn?this.state.Diagnosislist.map((item)=>{
+    const SuggestionShow = this.state.SuggestionOn?diagnosis.map((item)=>{
       let val = item.name;
       return(
         this.state.SuggestionsData.map((i)=>{
@@ -1105,11 +1158,7 @@ class PrescriptionWrittng extends React.Component{
             console.log("hi");
             return(
               <Card className={classes.customCard} key={i.treatment_id}>
-                <CardHeader
-                  style={{
-                    padding:'10px'
-                  }}
-                  avatar={
+                <CardHeader style={{padding:'10px'}} avatar={
                     <Assignment style={{color:'blue'}}/>
                   }
                   action={
@@ -1139,7 +1188,7 @@ class PrescriptionWrittng extends React.Component{
                       {i.treatment_medicine_list.map((med)=>{
                         console.log(med.product_name);
                         return(
-                          <li key={med.medicine_id} style={{marginBottom:"5px"}}>
+                          <li key={med.treatment_medicine_id} style={{marginBottom:"5px"}}>
 
                             <FormControlLabel
                               control={
@@ -1166,13 +1215,33 @@ class PrescriptionWrittng extends React.Component{
       <div className={classes.root}>
         <Card className={classes.rootContainer}>
           <Grid container style={{width:'100%',padding:'0%',borderBottom:'1px solid #D1D2D7'}}>
-            <form className={classes.container} noValidate autoComplete="off">
-              <Grid item xs={3}>
+
+            <div className={classes.patientContainer}>
+
+              <Grid item xs={2}>
                 <TextField required={true} id="PatientName" label="Patient Name" className={classes.textField} value={patientName} onChange={this.handlePatientDetailChange} margin="normal"/>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={1} style={{marginRight:'10px'}}>
                 <TextField required={true} id="Age" label="Age" className={classes.textField2} value={patientAge} onChange={this.handlePatientDetailChange} margin="normal" type="number"/>
-                <TextField id="Sex" label="Sex" className={classes.textField2} value={patientSex} onChange={this.handlePatientDetailChange} margin="normal"/>
+              </Grid>
+              <Grid item xs={1}>
+                <FormControl className={classes.ageFormControl}>
+                  <InputLabel htmlFor="sex-native-simple">Sex</InputLabel>
+                  <Select
+                    native
+                    value={patientSex}
+                    onChange={this.handlePatientDetailChange}
+                    inputProps={{
+                      name: 'Sex',
+                      id: 'Sex',
+                    }}
+                    className={classes.textField2}
+                  >
+                    <option value="" />
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={2}>
                 <TextField id="Mobile" label="Mobile" className={classes.textField} value={patientMobile} onChange={this.handlePatientDetailChange} margin="normal"/>
@@ -1180,16 +1249,17 @@ class PrescriptionWrittng extends React.Component{
               <Grid item xs={2}>
                 <TextField id="Email" label="Email" className={classes.textField} value={patientEmail} onChange={this.handlePatientDetailChange} margin="normal"/>
               </Grid>
-              <Grid item xs={2}>
-                <TextField id="PatientId" label="Id" className={classes.textField} value={patientPatientId} onChange={this.handlePatientDetailChange} margin="normal"/>
-              </Grid>
-            </form>
+              {/*<Grid item xs={2}>*/}
+                {/*<TextField id="PatientId" label="Id" className={classes.textField} value={patientPatientId} onChange={this.handlePatientDetailChange} margin="normal"/>*/}
+              {/*</Grid>*/}
+
+            </div>
+
           </Grid>
           <Grid container style={{ height:'100%'}} >
             <Grid item xs={2} className={classes.leftGrid} style={{ height:'100%',paddingRight:'0px'}}>
-
-              {/*<Typography style={{marginTop:'5px', color:'#7f7f7f', fontWeight:'bold'}}>C/C</Typography>*/}
               <div className={classes.leftPaneElm}>
+                <Tooltip title="Clinical Complain" aria-label="Add" style={{fontSize:'12px'}}>
                 <TextField id="standard-name" className={classes.cctextField} value={this.state.value} onChange={this.CCsearchKeywords} margin="normal" style={{fontSize:'14px'}}
                   InputProps={{
                     padding:'0% 1%',
@@ -1202,7 +1272,7 @@ class PrescriptionWrittng extends React.Component{
                     </IconButton>
                   }}
                 />
-
+                </Tooltip>
                 {!this.state.value==""?
                   <div style={{zIndex:'100',maxHeight:'200px', width:'150px',backgroundColor:'#f6f6f6', position:'absolute', overflow:'auto',padding:'0px',marginTop:'0px'}}>
                     <ul style={{marginLeft:'-35px',marginTop:'-1px'}}>
@@ -1231,8 +1301,8 @@ class PrescriptionWrittng extends React.Component{
                     </div>
                   )) : null} </div>
               </div>
-              {/*<Typography style={{marginTop:'5px', color:'#7f7f7f', fontWeight:'bold'}}>O/E</Typography>*/}
               <div className={classes.leftPaneElm}>
+                <Tooltip title="Observation & Examination" aria-label="Add" style={{fontSize:'12px'}}>
                 <TextField id="" multiline className={classes.cctextField} value={this.state.OEvalue} onChange={this.OEsearchKeywords} margin="normal" style={{fontSize:'14px'}}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">O/E</InputAdornment>,
@@ -1242,9 +1312,10 @@ class PrescriptionWrittng extends React.Component{
                     </IconButton>
                   }}
                 />
+                </Tooltip>
                 <div className={classes.listElem}>
                   {oe != null ?
-                  oe.slice(0).reverse().map((itemx,index) => (
+                  oe.slice(0).map((itemx,index) => (
                     <div key={index} className={classes.listElmContent}>
                       <TextField id={itemx.id} multiline className={classes.cctextField} name={`${index}`} value={itemx.name} onChange={this.onUpdateOE.bind(this)} margin="normal" style={{fontSize:'14px'}}
                                  InputProps={{className: classes.cctextFieldInput, startAdornment: <InputAdornment position="start"><Done /></InputAdornment>,
@@ -1257,8 +1328,8 @@ class PrescriptionWrittng extends React.Component{
                     </div>
                   )) : null} </div>
               </div>
-              {/*<Typography style={{marginTop:'5px', color:'#7f7f7f', fontWeight:'bold'}}>Diagnosis</Typography>*/}
               <div className={classes.leftPaneElm}>
+
                 <TextField id="Diagnosis" className={classes.cctextField} value={this.state.Diagnosisvalue} onChange={this.DiagnosisSearchKeywords} margin="normal" style={{fontSize:'14px'}}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">Diagnosis</InputAdornment>,
@@ -1280,7 +1351,7 @@ class PrescriptionWrittng extends React.Component{
                 }
                 <div className={classes.listElem}>
                   {diagnosis != null ?
-                  diagnosis.slice(0).reverse().map((itemx,index) => (
+                  diagnosis.slice(0).map((itemx,index) => (
                     <div key={index} className={classes.listElmContent}>
                       <TextField id={itemx.id} multiline className={classes.cctextField} name={`${index}`} value={itemx.name} onChange={this.onUpdateDiagnosis.bind(this)} margin="normal" style={{fontSize:'14px'}}
                         InputProps={{
@@ -1296,9 +1367,8 @@ class PrescriptionWrittng extends React.Component{
                   )) : null} </div>
               </div>
 
-              {/*<Typography style={{marginTop:'5px', color:'#7f7f7f', fontWeight:'bold'}}>Tests</Typography>*/}
               <div className={classes.leftPaneElm}>
-
+                <Tooltip title="Give a test for the patient" aria-label="Add" style={{fontSize:'12px'}}>
                 <TextField
                   id="tests"
                   InputProps={{
@@ -1314,7 +1384,7 @@ class PrescriptionWrittng extends React.Component{
                   margin="normal"
                   style={{fontSize:'14px', overflow:'auto'}}
                 />
-
+                </Tooltip>
                 {!this.state.Testsvalue==""?
                   <div style={{zIndex:'100',maxHeight:'200px', width:'150px',backgroundColor:'#f6f6f6', position:'absolute', overflow:'auto',padding:'0px',marginTop:'0px'}}>
                     <ul style={{marginLeft:'-35px',marginTop:'-1px'}}>
@@ -1324,7 +1394,7 @@ class PrescriptionWrittng extends React.Component{
                 }
                 <div className={classes.listElem}>
                 {tests != null ?
-                  tests.slice(0).reverse().map((itemx,index) => (
+                  tests.slice(0).map((itemx,index) => (
 
                     <div key={index} className={classes.listElmContent}>
                       <TextField id={itemx.id} multiline
@@ -1350,16 +1420,14 @@ class PrescriptionWrittng extends React.Component{
 
 
               </div>
-              {/*<Typography style={{marginTop:'5px', color:'#7f7f7f', fontWeight:'bold'}}>Advice</Typography>*/}
               <div className={classes.leftPaneElm}>
                 <TextField id="advice" label="Add Advice" multiline rowsMax="3" value={advice} onChange={this.handleAdviceChange} className={classes.adviceTextField} margin="normal" style={{fontSize:'14px',marginTop:'-3px'}}/>
               </div>
             </Grid>
             <Grid item xs={7} className={classes.centerGrid} >
-
-              <Grid container>
+              <Paper style={{margin:'10px', padding:'5px', display:'flex'}}>
                 <Grid item xs={3}>
-                  <TextField id="" label="Medicine Name" className={classes.medtextField} value={this.state.TempMedValue} onChange={this.MedSearchKeywords} margin="normal" style={{fontSize:'14px'}}/>
+                  <TextField id="" label="Type a Medicine" className={classes.medtextField} value={this.state.TempMedValue} onChange={this.MedSearchKeywords} margin="normal" style={{fontSize:'14px'}}/>
                   {!this.state.TempMedValue=="" && !this.state.MedFlag?
                     <div style={{zIndex:'100',maxHeight:'200px', width:'150px',backgroundColor:'#f6f6f6', position:'absolute', overflow:'auto',padding:'0px',marginTop:'0px'}}>
                       <ul style={{marginLeft:'-35px',marginTop:'-1px'}}>
@@ -1379,11 +1447,15 @@ class PrescriptionWrittng extends React.Component{
                 </Grid>
                 <Grid item xs={3}>
                   <TextField id="remark" label="Remark" className={classes.medtextField} value={this.state.TempRemValue} onChange={this.RemarkSearchKeywords} margin="normal" style={{fontSize:'14px'}}/>
-                  <IconButton onClick={this.addAllMedicine} disabled={!this.state.TempMedValue} style={{marginTop:'-40px',marginLeft:'80%'}}>
-                    <Check style={{color:'#7f7f7f'}}/>
-                  </IconButton>
+                  <Tooltip title="Type a Medicine Name and Click Here!" aria-label="Add" style={{fontSize:'12px'}}>
+                  <div>
+                    <IconButton onClick={this.addAllMedicine} disabled={!this.state.TempMedValue} style={{marginTop:'-40px',marginLeft:'80%'}}>
+                      <Check style={{color:'#7f7f7f'}}/>
+                    </IconButton>
+                  </div>
+                  </Tooltip>
                 </Grid>
-              </Grid>
+              </Paper>
               <div className={classes.centerPaneContentHeader}>
               <div className={classes.medicineListElem}>
                 {medicine != null ?
@@ -1413,25 +1485,60 @@ class PrescriptionWrittng extends React.Component{
                   </div>
               </div>
 
-              <footer className={classes.footer}>
-                <TextField id="date" label="Follow Up Date" type="date" defaultValue= "2017-05-24" className={classes.textField}
-                           InputLabelProps={{
-                             shrink: true,
-                           }}
-                />
-                <Button variant="outlined" color="primary" className={classes.button} onClick={() => this.clearPrescription()}>
-                  Clear
-                </Button>
-                <Button variant="outlined" color="primary" className={classes.button} onClick={() => this.printPrescription()}>
-                  Print
-                </Button>
-              </footer>
+
 
             </Grid>
             <Grid item xs={3} className={classes.rightGrid}>
-              <Info style={{fontSize:'18px',color:'orange'}}/>
-              <h5 style={{marginTop:'30px'}}>Suggestions</h5>
-              {SuggestionShow}
+              <div>
+               <div style={{display:'flex', marginTop:'5px'}}>
+                 <Tooltip title="List of treatments based on diagnosis" aria-label="Add" style={{fontSize:'12px'}}>
+                 <Info style={{fontSize:'24px',color:'orange', margin:' 4px'}}/>
+                 </Tooltip>
+                 <Typography variant="h6" component="h6" >
+                   Suggestions
+                 </Typography>
+               </div>
+
+                <div  style={{height:'70%' , overflow: 'auto'}}>
+                  {SuggestionShow}
+                </div>
+
+
+              </div>
+
+              <Paper className={classes.rightBottom}>
+                <div style={{padding: '5px 0 0 10px'}}>
+                  <div style={{display:'flex', height:'35px'}}>
+                      <div style={{width:'22px'}}>
+                        <IconFollowUp  />
+                      </div>
+                    <p style={{margin:'0px', padding:'2px'}}>
+                      Follow-up Date
+                    </p>
+                  </div>
+
+                  <DatePicker
+
+                    selected={this.state.startDate}
+                    onChange={this.handleChange}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    timeIntervals={15}
+                    dateFormat="MMMM d, yyyy h:mm aa"
+                    timeCaption="time"
+                  />
+                </div>
+               <div style={{textAlign:'center', padding:'10px'}}>
+                 <Button style={{marginRight:'20px'}} variant="outlined" color="primary" className={classes.button} onClick={() => this.clearPrescription()}>
+                   Clear
+                 </Button>
+                 <Button variant="outlined" color="primary" className={classes.button} onClick={() => this.printPrescription()}>
+                   Print
+                 </Button>
+               </div>
+
+              </Paper>
+
             </Grid>
           </Grid>
         </Card>

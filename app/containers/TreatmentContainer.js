@@ -3,9 +3,9 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import Treatment from '../components/Treatment';
-import {fetchTreatment , saveTreatment, updateTreatmentMedicine} from "../features/treatment";
+import {fetchTreatment , saveTreatment, updateTreatmentMedicine, deleteTreatment, deleteMedicineFromTreatment, updateMedicineFromTreatment} from "../features/treatment";
 import {saveMedicine} from "../features/medicine";
-
+import {openSnackBar} from "../features/ui";
 
 const mapStateToProps = state => ({
   medicineState: state.medicineState,
@@ -14,7 +14,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  fetchTreatment , saveTreatment , saveMedicine , updateTreatmentMedicine
+  fetchTreatment , saveTreatment , saveMedicine , updateTreatmentMedicine, deleteTreatment,
+  deleteMedicineFromTreatment, updateMedicineFromTreatment, openSnackBar
 };
 
 class TreatmentContainer extends Component {
@@ -27,7 +28,9 @@ class TreatmentContainer extends Component {
 
   render() {
     const {
-     medicineState, securityState , treatmentState, saveTreatment, fetchTreatment , saveMedicine , updateTreatmentMedicine
+     medicineState, securityState , treatmentState, saveTreatment,
+      fetchTreatment , saveMedicine , updateTreatmentMedicine, deleteMedicineFromTreatment,
+      deleteTreatment, updateMedicineFromTreatment, openSnackBar
     } = this.props;
     console.log("Treatment Container");
     console.log(this.props);
@@ -36,10 +39,15 @@ class TreatmentContainer extends Component {
         medicineState={medicineState}
         securityState={securityState}
         treatmentState={treatmentState}
+
         saveTreatment={saveTreatment}
         fetchTreatment={fetchTreatment}
         saveMedicine={saveMedicine}
         updateTreatmentMedicine={updateTreatmentMedicine}
+        deleteMedicineFromTreatment={deleteMedicineFromTreatment}
+        deleteTreatment={deleteTreatment}
+        updateMedicineFromTreatment={updateMedicineFromTreatment}
+        openSnackBar={openSnackBar}
       />
     );
   }

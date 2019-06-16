@@ -15,21 +15,26 @@ class Treatment extends React.Component{
   constructor(props) {
     super(props);
   }
-
-
     render() {
     const { classes } = this.props;
       console.log('in Treatment Component');
-      const {treatmentState, medicineState , saveMedicine , updateTreatmentMedicine, saveTreatment} = this.props;
+      const {treatmentState, medicineState , saveMedicine ,
+        updateTreatmentMedicine, saveTreatment, deleteTreatment,
+        deleteMedicineFromTreatment, updateMedicineFromTreatment, openSnackBar} = this.props;
 
     return (
       <div className={classes.treatment}>
        <TreatmentTableView
          medicineState={medicineState}
          treatmentState={treatmentState}
+
          saveMedicine={saveMedicine}
          updateTreatmentMedicine={updateTreatmentMedicine}
          saveTreatment={saveTreatment}
+         deleteTreatment={deleteTreatment}
+         deleteMedicineFromTreatment={deleteMedicineFromTreatment}
+         updateMedicineFromTreatment={updateMedicineFromTreatment}
+         openSnackBar={openSnackBar}
        />
       </div>
     );

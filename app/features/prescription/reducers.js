@@ -199,6 +199,8 @@ export default function prescriptionState(state: any = initialState, action){
         ...state,
         followupdate: action.payload
       };
+    case constants.RESET_STATE:
+      return initialState;
     default:
       return state;
   }

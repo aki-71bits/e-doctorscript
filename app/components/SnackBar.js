@@ -25,6 +25,7 @@ const styles = theme => ({
 const mapStateToProps = state => ({
   open: state.uiReducer.snackBarOpen,
   variant: state.uiReducer.snackBarVariant,
+  message : state.uiReducer.message
 });
 
 const mapDispatchToProps = {
@@ -42,6 +43,7 @@ class CustomSnackBar extends PureComponent {
       closeSnackBarAlias,
     } = this.props;
 
+    console.log(this.props);
     const messageCatch = message === undefined ? 'Service Unavailable, Try Again Later!' : message;
 
     return (

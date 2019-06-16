@@ -1,11 +1,11 @@
 import {services} from "./services";
 import {history} from "../../store/configureStore";
 import {constants} from "./constants";
-import {SNACKBAR_OPEN} from '../../features/ui/constants';
 import {profileActions} from "../usermanagement/actions";
 import {medicineActions} from "../medicine/actions";
 import {treatmentActions} from  "../treatment/actions";
 import {fetchSettings} from "../settings/actions";
+import {openSnackBar} from "../ui";
 
 const {ipcRenderer} = require('electron');
 
@@ -26,34 +26,44 @@ export function login(username: string, password: string) {
 
   return (dispatch , getState: Store) => {
     dispatch(request({ username }));
-    services.login(username, password)
-      .then(
-        (user) => {
 
-          if (user) {
-            ipcRenderer.send('resize-me-please', false);
+    try {
+      services.login(username, password)
+        .then(
+          (user) => {
 
-
-
-            dispatch(success(user));
-            dispatch(loadDataInBackground());
-            //Fetch other necessary stuff
-            //dispatch(profileActions.fetchProfile());
-            //dispatch(medicineActions.fetchMedicine());
+            if (user) {
+              ipcRenderer.send('resize-me-please', false);
 
 
-            //history.push('/dashboard');
-          } else {
-            const errorString = `Please Check Your Credentials!`;
-            console.log(errorString);
-            dispatch(failure(errorString));
+
+              dispatch(success(user));
+              dispatch(loadDataInBackground());
+              //Fetch other necessary stuff
+              //dispatch(profileActions.fetchProfile());
+              //dispatch(medicineActions.fetchMedicine());
+
+
+              //history.push('/dashboard');
+            } else {
+              const errorString = `Please Check Your Credentials!`;
+              console.log(errorString);
+              dispatch( openSnackBar(errorString , 'error'));
+            }
+          },
+          (error: any) => {
+            const errorString = `Email or Password is wrong`;
+            dispatch( openSnackBar(errorString , 'error'));
+            dispatch({type: constants.LOGIN_FAILURE});
           }
-        },
-        (error: any) => {
-          const errorString = `Email or Password is wrong`;
-          dispatch(failure(errorString));
-        }
-      );
+        );
+
+    }catch (e) {
+      const errorString = `Service is down, try again later`;
+      dispatch( openSnackBar(errorString , 'error'));
+    }
+
+
   };
 
   function request(user: {username: string}) {
@@ -63,13 +73,6 @@ export function login(username: string, password: string) {
 
     return {
       type: constants.LOGIN_SUCCESS, user
-    }
-  }
-  function failure(error) {
-    return {
-      type:SNACKBAR_OPEN,
-      message: error,
-      variant: 'error'
     }
   }
 }

@@ -6,6 +6,7 @@ import {
 const initialState = {
   snackBarOpen: false,
   message: '',
+  snackBarVariant:''
 };
 
 export default function uiReducer(state = initialState, action) {
@@ -14,8 +15,8 @@ export default function uiReducer(state = initialState, action) {
       return {
         ...state,
         snackBarOpen: true,
-        message: action.message,
-        snackBarVariant: action.variant,
+        message: action.payload.message,
+        snackBarVariant: action.payload.variant,
       };
     case SNACKBAR_CLOSED:
       return {

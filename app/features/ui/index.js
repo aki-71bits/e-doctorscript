@@ -1,7 +1,4 @@
-import {
+export {
   openSnackBar, closeSnackBar,
 } from './actions';
 
-export {
- openSnackBar, closeSnackBar,
-};

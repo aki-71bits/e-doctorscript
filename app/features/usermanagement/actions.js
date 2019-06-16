@@ -1,7 +1,7 @@
 import {constants} from './constants';
 import {services} from "./services";
 import type { Store} from '../../store/reducers/types';
-import {SNACKBAR_OPEN} from '../ui/constants';
+import {openSnackBar} from "../ui";
 
 export const profileActions = {
   fetchProfile,
@@ -47,30 +47,21 @@ export function updateProfile(profile: Object) {
     services.updateProfile(access_token , profile)
       .then(
         (response) => {
+
+          const {responseStatus} = response;
+          console.log(responseStatus);
           dispatch(success(profile));
-          dispatch(profileUpdated(response.responseStatus));
+          dispatch(openSnackBar(responseStatus , 'success'));
 
         },
         (error: any) => {
-          dispatch(failure(error));
+          dispatch(openSnackBar(error , 'error'));
+
         }
       );
   };
 
   function request(profile: {profile: Object}) { return { type: constants.PROFILE_UPDATE_REQUEST, profile } }
   function success(profile: Object ){ return { type: constants.PROFILE_UPDATE_SUCCESS, profile } }
-  function failure(error) {
-    return {
-      type:SNACKBAR_OPEN,
-      message: error,
-      variant: 'error'
-    }
-  }
-  function profileUpdated(msg) {
-    return {
-      type:SNACKBAR_OPEN,
-      message: msg,
-      variant: 'success'
-    }
-  }
+
 }

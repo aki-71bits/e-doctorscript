@@ -59,15 +59,19 @@ function realLoginExample(username: string, password: string) {
         'Authorization' : 'Basic ' + btoa( API_CONFIG.CLIENT_ID + ':' + API_CONFIG.CLIENT_SECRET)},
         body: formBody
     };
+try {
+  return fetch(API_CONFIG.LOGIN, requestOptions)
+    .then(handleResponse, handleError)
+    .then((user: any) => {
+      if (user && user.token) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      return user;
+    });
+}catch (e) {
+  console.log(e);
+}
 
-    return fetch(API_CONFIG.LOGIN, requestOptions)
-        .then(handleResponse, handleError)
-        .then((user: any) => {
-            if (user && user.token) {
-                localStorage.setItem('user', JSON.stringify(user));
-            }
-            return user;
-        });
 }
 
 function handleResponse(response: any) {
@@ -87,6 +91,7 @@ function handleResponse(response: any) {
 }
 
 function handleError(error: any) {
+  console.log(error);
     return Promise.reject(error && error.message);
 }
 

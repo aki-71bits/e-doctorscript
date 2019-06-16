@@ -17,7 +17,7 @@ import LastPageIcon from '@material-ui/icons/LastPage';
 import TableHead from "@material-ui/core/TableHead/TableHead";
 import SearchIcon from '@material-ui/icons/Search';
 import InputBase from '@material-ui/core/InputBase';
-import TreatmentMedicineView from './TreatmentMedicineView';
+import TreatmentMedicineView from './TreatmentMedView';
 import Button from "@material-ui/core/Button/Button";
 import Dialog from "@material-ui/core/Dialog/Dialog";
 import DialogContent from "@material-ui/core/DialogContent/DialogContent";
@@ -29,7 +29,9 @@ import TextField from '@material-ui/core/TextField';
 import Snackbar from '@material-ui/core/Snackbar';
 import CloseIcon from '@material-ui/icons/Close';
 import Cancel from '@material-ui/icons/Delete';
+import Close from "@material-ui/icons/Close";
 let update = require('immutability-helper');
+
 //import Done  from '@material-ui/icons/DoneAll';
 const actionsStyles = theme => ({
   root: {
@@ -142,7 +144,7 @@ const styles = theme => ({
     padding:'0px',
   },
   searchKeyword:{
-
+    color: '#000000',
     cursor:'pointer',
     borderBottom:'1px solid #D1D2D7',
     '&:hover': {
@@ -154,6 +156,54 @@ const styles = theme => ({
     overflowY:'auto',
     overflowX:'hidden'
   },
+  addMedicineContainer:{
+    padding: '0px',
+    marginTop: '30px'
+  },
+  textfieldProductName:{
+    fontSize:'14px',
+    width:'183px',
+    margin:'0px',
+    padding:'0px 0 0 20px',
+    borderRadius:'3px 3px 0px 0px',
+    borderTop:'1px solid rgb(221, 219, 219)',
+    borderLeft:'1px solid rgb(221, 219, 219)',
+    borderRight:'1px solid rgb(221, 219, 219)',
+    borderBottom:'1px solid rgb(221, 219, 219)',
+  },
+  textfieldForMedicine:{
+    fontSize:'14px',
+    width:'80%',
+    margin:'0px',
+    padding:'0px 0 0 20px',
+    borderRadius:'3px 3px 0px 0px',
+    borderTop:'1px solid rgb(221, 219, 219)',
+    borderLeft:'1px solid rgb(221, 219, 219)',
+    borderRight:'1px solid rgb(221, 219, 219)',
+    borderBottom:'1px solid rgb(221, 219, 219)',
+  },
+  suggestionListDialogue:{
+    // borderTop:'1px solid rgb(221, 219, 219)',
+    borderBottom:'1px solid rgb(221, 219, 219)',
+    borderLeft:'1px solid rgb(221, 219, 219)',
+    borderRight:'1px solid rgb(221, 219, 219)',
+    zIndex:'100',
+    backgroundColor: '#ffffff' ,
+    maxHeight:'200px',
+    width:'183px',
+    position:'absolute',
+    overflow:'auto',
+    marginTop:'0px'
+  },
+  medicineListElem:{
+    padding: '0px',
+    height:'250px' ,
+    maxHeight:'300px',
+    position:'relative',
+    overflowY:'auto',
+    overflowX:'hidden',
+    marginTop: '30px'
+  },
 });
 
 class TreatmentTableView extends React.Component {
@@ -164,7 +214,7 @@ class TreatmentTableView extends React.Component {
     this.state = {
       rows: [],
       page: 0,
-      rowsPerPage: 5,
+      rowsPerPage: 10,
       searchOn:false,
       filtered:[],
       openMedicineDetail: false,
@@ -215,7 +265,7 @@ class TreatmentTableView extends React.Component {
   handleCloseAddTreatment = () => {
     this.setState({ openAddTreatment: false });
   };
-  handleClose = () => {
+  handleCloseTreatmentDialogue = () => {
     this.setState({ openMedicineDetail: false });
   };
   handleChangePage = (event, page) => {
@@ -246,7 +296,7 @@ class TreatmentTableView extends React.Component {
   {
     console.log(treatment);
 
-    const {treatment_medicine_list , name } = treatment;
+    const {treatment_medicine_list , name , treatment_id} = treatment;
     this.setState({
       openMedicineDetail: true,
       medicine: treatment_medicine_list,
@@ -264,6 +314,7 @@ class TreatmentTableView extends React.Component {
     //console.log(this.state.TempMedValue);
   };
   addAllMedicine=()=>{
+    console.log("add medicine request");
     let MedVal = this.state.TempMedValue;
     let StrenVal = this.state.TempStrenValue;
     if(StrenVal == '')StrenVal = "N/A";
@@ -320,22 +371,13 @@ class TreatmentTableView extends React.Component {
         strength: strength,
         remark: remark
       };
+      console.log(medObj)
       //this.props.setMedicine(medObj);
     }
     else{
       let msg = "Already Exists!";
-      this.handleSnackbar(msg);
+      this.props.openSnackBar(msg, 'info');
     }
-    //console.log(this.state);
-  };
-  handleSnackbar=(msg)=>{
-    this.setState({
-      openSnackbar:true,
-      SnackbarMessage:msg
-    })
-  };
-  handleCloseSnackbar = () => {
-    this.setState({ openSnackbar: false });
   };
 
   onUpdateMed = (val) => {
@@ -469,55 +511,72 @@ class TreatmentTableView extends React.Component {
     let keyword = event.target.value;
     this.setState({TempRemValue:keyword});
   };
+
   handleSaveTreatment=()=>{
-    console.log("Save Medicine");
+    console.log("Save Treatment request");
     let Treatmentdescription = this.state.treatmentDescription;
     let NameTreatment = this.state.treatmentName;
     let medicineList =[];
 
     let size = this.state.MedList.length;
 
-    for(let i=0;i<size;i++){
+    if (size === 0) {
+      let msg = "Add atleast one medicine and click on the + Button";
+      this.props.openSnackBar(msg, 'info');
+    }else{
+      for(let i=0;i<size;i++){
 
-      let MedName = this.state.MedList[i].name;
-      let TypeName = this.state.TypeList[i].name;
-      let strengthName = this.state.StrenList[i].name;
-      let FrequencyName = this.state.FreqList[i].name;
-      let RemarkName = this.state.RemList[i].name;
-      let Idval = `${this.state.Medicines.length + 1}`;
+        let MedName = this.state.MedList[i].name;
+        let TypeName = this.state.TypeList[i].name;
+        let strengthName = this.state.StrenList[i].name;
+        let FrequencyName = this.state.FreqList[i].name;
+        let RemarkName = this.state.RemList[i].name;
+        let Idval = `${this.state.Medicines.length + 1}`;
 
-      //Checking if there is any duplicate for safety, if Save button is double pressed.
-      let fl = 1;
-      let loopMed = this.state.Medicines.map((j)=>{
-        if(j.product_name.toUpperCase() === MedName.toUpperCase() && j.strength.toUpperCase() === strengthName.toUpperCase()){
-          fl = 0;
+        //Checking if there is any duplicate for safety, if Save button is double pressed.
+        let fl = 1;
+        let loopMed = this.state.Medicines.map((j)=>{
+          if(j.product_name.toUpperCase() === MedName.toUpperCase() && j.strength.toUpperCase() === strengthName.toUpperCase()){
+            fl = 0;
+          }
+        });
+
+        if(fl==1){
+          this.setState((prevState) => ({
+            Medicines: [...prevState.Medicines, {id: Idval, product_name:MedName, type:TypeName, strength: strengthName, frequency: FrequencyName, remark: RemarkName}]
+          }));
         }
-      });
-
-      if(fl==1){
-        this.setState((prevState) => ({
-          Medicines: [...prevState.Medicines, {id: Idval, product_name:MedName, type:TypeName, strength: strengthName, frequency: FrequencyName, remark: RemarkName}]
-        }));
+        let medicines = {
+          "product_name": MedName,
+          "types": TypeName,
+          "generic": "",
+          "strength": strengthName,
+          "indication": "",
+          "frequency": FrequencyName,
+          "remark": RemarkName
+        };
+        medicineList.push(medicines);
       }
-      let medicines = {
-        "product_name": MedName,
-        "types": TypeName,
-        "generic": "",
-        "strength": strengthName,
-        "indication": "",
-        "frequency": FrequencyName,
-        "remark": RemarkName
+      const treatmentBody = {
+        name: NameTreatment,
+        description: Treatmentdescription,
+        treatment_medicine_list: medicineList
       };
-      medicineList.push(medicines);
+
+      if (NameTreatment ==="") {
+        const msg = "Please provide a name";
+        this.props.openSnackBar(msg, 'info');
+      }else{
+        this.props.saveTreatment(treatmentBody);
+        this.setState({
+          MedList: [],
+          treatmentDescription: '',
+          treatmentName:'',
+          openAddTreatment:false
+        });
+      }
+
     }
-    const treatmentBody = {
-      name: NameTreatment,
-      description: Treatmentdescription,
-      treatment_medicine_list: medicineList
-    };
-
-    this.props.saveTreatment(treatmentBody)
-
   };
 
   removeAllMedicine = i =>{
@@ -558,13 +617,13 @@ class TreatmentTableView extends React.Component {
     console.log("Inside Treatment Table View");
     console.log(this.props);
     console.log(this.state);
-    const { classes , saveMedicine, updateTreatmentMedicine} = this.props;
+    const { classes , saveMedicine, updateTreatmentMedicine, deleteTreatment, openSnackBar, treatmentState} = this.props;
     const { rows, rowsPerPage, page , medicine , treatmentDetails, MedicineList} = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
-    const Med = this.state.MOnChange?this.state.MedFiltered.map((item)=>{
+    const MedicineSuggestions = this.state.MOnChange?this.state.MedFiltered.map((item)=>{
       return(
-        <li key={item.id} onClick={()=>this.addMed(item)} className={classes.searchKeyword}>
+        <li key={item.medicine_id} onClick={()=>this.addMed(item)} className={classes.searchKeyword}>
           {item.product_name} <span><i> {item.types} </i></span> {item.strength}
         </li>
       )
@@ -596,156 +655,110 @@ class TreatmentTableView extends React.Component {
     return (
       <Paper className={classes.root}>
         <div>
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          open={this.state.openSnackbar}
-          autoHideDuration={3000}
-          onClose={this.handleCloseSnackbar}
-          ContentProps={{
-            'aria-describedby': 'message-id',
-          }}
-          message={<span id="message-id">{this.state.SnackbarMessage}</span>}
-          action={[
-            <IconButton
-              key="close"
-              aria-label="Close"
-              color="inherit"
-              className={classes.close}
-              onClick={this.handleCloseSnackbar}
-            >
-              <CloseIcon />
-            </IconButton>,
-          ]}
-        />
-          <Dialog
-            fullWidth = {true}
-            maxWidth = "xl"
-            open={this.state.openMedicineDetail}
-            onClose={this.handleClose}
-            aria-labelledby="draggable-dialog-title"
-          >
+          <Dialog fullWidth = {true} maxWidth = "md" open={this.state.openMedicineDetail} onClose={this.handleCloseTreatmentDialogue} aria-labelledby="draggable-dialog-title">
             <DialogContent>
               <TreatmentMedicineView
+                treatmentState={treatmentState}
+
                 medicine={medicine}
                 medList={MedicineList}
                 treatmentDetails={treatmentDetails}
                 saveMedicine={saveMedicine}
+                deleteTreatment={deleteTreatment}
+                updateTreatmentMedicine={updateTreatmentMedicine}
+
+                onDeleteTreatment={this.handleCloseTreatmentDialogue}
+                closeTreatmentUpdateDialogue = {this.handleCloseTreatmentDialogue}
+                openSnackBar={openSnackBar}
+
               />
             </DialogContent>
-            <DialogActions>
-              <Button onClick={this.handleClose} color="primary">
-                Cancel
-              </Button>
-              <Button onClick={this.handleClose} color="primary">
-                OK
-              </Button>
-            </DialogActions>
           </Dialog>
           {/* Add treatment Dialog */}
-          <Dialog
-            fullWidth = {true}
-            maxWidth = "md"
-            open={this.state.openAddTreatment}
-            onClose={this.handleCloseAddTreatment}
-            aria-labelledby="draggable-dialog-title"
-          >
+          <Dialog fullWidth = {true} maxWidth = "md" open={this.state.openAddTreatment} onClose={this.handleCloseAddTreatment} aria-labelledby="draggable-dialog-title">
             <DialogContent>
             <div>
             <Grid container>
                 <Grid item xs={4}>
-                  <TextField
-                    id=""
-                    label="Add New Treatment"
-                    value={this.state.treatmentName}
-                    onChange={this.handleTreatmentName}
-                    margin="normal"
-                    style={{fontSize:'14px',width:'85%',margin:'0px', padding:'0px'}}
-                  />
+                  <TextField required={true} id="" label="Treatment Name" value={this.state.treatmentName} onChange={this.handleTreatmentName} margin="normal" style={{fontSize:'14px',width:'85%',margin:'0px', padding:'0px'}}/>
 
                 </Grid>
-                <Grid item xs={8}>
-                  <TextField
-                    id=""
-                    label="Description..."
-                    value={this.state.treatmentDescription}
-                    onChange={this.handleTreatmentDescription}
-                    margin="normal"
-                    style={{fontSize:'14px',width:'85%',margin:'0px', padding:'0px'}}
-                  />
+                <Grid item xs={6}>
+                  <TextField id="" label="Description" value={this.state.treatmentDescription} onChange={this.handleTreatmentDescription} margin="normal" style={{fontSize:'14px',width:'85%',margin:'0px', padding:'0px'}}/>
                 </Grid>
               </Grid>
+              </div>
+              <div className={classes.addMedicineContainer}>
+                <Grid container>
+                  <Grid item xs={3}>
+                    <TextField placeholder="Type a Medicine Name" id="" value={this.state.TempMedValue} onChange={this.MedicineSearchKeywords} margin="normal" className={classes.textfieldProductName}
+                               InputProps={{
+                                 disableUnderline: true,
+                                 endAdornment: <IconButton
+                                   onClick={this.closeSuggestion}>
+                                   <Close  style={{color:'#7f7f7f', fontSize:'18px'}}/>
+                                 </IconButton>
+                               }}
+
+                    />
+                    {!this.state.TempMedValue=="" && !this.state.MedFlag?
+                      <div className={classes.suggestionListDialogue}>
+                        <ul style={{marginTop:'-1px', padding:'10px' }}>
+                          {!this.state.TempMedValue=="" && !this.state.MedFlag?MedicineSuggestions:null}
+                        </ul>
+                      </div>:null
+                    }
+                  </Grid>
+                  <Grid item xs={2}>
+                    <TextField id="strength" placeholder="Strength" className={classes.textfieldForMedicine} value={this.state.TempStrenValue} onChange={this.StrenSearchKeywords} margin="normal" style={{fontSize:'14px'}}
+                               InputProps={{
+                                 disableUnderline: true}}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <TextField id="type" placeholder="Type" className={classes.textfieldForMedicine} value={this.state.TempTypValue} onChange={this.TypeSearchKeywords} margin="normal" style={{fontSize:'14px'}}
+                               InputProps={{
+                                 disableUnderline: true}}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <TextField id="frequency" placeholder="Frequency" className={classes.textfieldForMedicine} value={this.state.TempFreqValue} onChange={this.FreqSearchKeywords} margin="normal" style={{fontSize:'14px'}}
+                               InputProps={{
+                                 disableUnderline: true}}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <TextField id="remark" placeholder="Remark" className={classes.textfieldForMedicine} value={this.state.TempRemValue} onChange={this.RemarkSearchKeywords} margin="normal" style={{fontSize:'14px'}}
+                               InputProps={{
+                                 disableUnderline: true}}
+                    />
+                  </Grid>
+                  <Tooltip title="Add Medicine">
+                    <IconButton onClick={this.addAllMedicine} style={{marginTop:'-4px'}}>
+                      <AddIcon style={{color:'#7f7f7f'}}/>
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
               </div>
               <div className={classes.medicineListElem}>
                 {this.state.MedList != null ?
                   this.state.MedList.map((itemx,index) => (
                     <Grid container key={index} style={{marginTop:'10px'}}>
                       <Grid item xs={3}>
-                        <TextField
-                          id={itemx.id}
-                          name={`${index}`}
-                          //label="Medicine Name"
-                          className={classes.medtextField}
-                          value={itemx.name}
-                          onChange={this.onUpdateMed.bind(this)}
-                          margin="normal"
-                          style={{fontSize:'14px'}}
-                        />
+                        <TextField id={itemx.id} name={`${index}`} className={classes.medtextField} value={itemx.name} onChange={this.onUpdateMed.bind(this)} margin="normal" style={{fontSize:'14px'}}/>
                       </Grid>
                       <Grid item xs={2}>
-                        <TextField
-                          id={itemx.id}
-                          name={`${index}`}
-                          //label="Strength"
-                          className={classes.medtextField}
-                          value={this.state.StrenList[index].name}
-                          onChange={this.onUpdateStren.bind(this)}
-                          margin="normal"
-                          style={{fontSize:'14px'}}
-                        />
+                        <TextField id={itemx.id} name={`${index}`} className={classes.medtextField} value={this.state.StrenList[index].name} onChange={this.onUpdateStren.bind(this)} margin="normal" style={{fontSize:'14px'}}/>
                       </Grid>
                       <Grid item xs={2}>
-                        <TextField
-                          id={itemx.id}
-                          name={`${index}`}
-                          //label="Type"
-                          className={classes.medtextField}
-                          value={this.state.TypeList[index].name}
-                          onChange={this.onUpdateType.bind(this)}
-                          margin="normal"
-                          style={{fontSize:'14px'}}
-                        />
+                        <TextField id={itemx.id} name={`${index}`} className={classes.medtextField} value={this.state.TypeList[index].name} onChange={this.onUpdateType.bind(this)} margin="normal" style={{fontSize:'14px'}}/>
                       </Grid>
                       <Grid item xs={2}>
-                        <TextField
-                          id={itemx.id}
-                          name={`${index}`}
-                          //label="Frequency"
-                          className={classes.medtextField}
-                          value={this.state.FreqList[index].name}
-                          onChange={this.onUpdateFreq.bind(this)}
-                          margin="normal"
-                          style={{fontSize:'14px'}}
-                        />
+                        <TextField id={itemx.id} name={`${index}`} className={classes.medtextField} value={this.state.FreqList[index].name} onChange={this.onUpdateFreq.bind(this)} margin="normal" style={{fontSize:'14px'}}/>
                       </Grid>
                       <Grid item xs={3}>
-                        <TextField
-                          id={itemx.id}
-                          name={`${index}`}
-                          //label="Remark"
-                          className={classes.medtextField}
-                          value={this.state.RemList[index].name}
-                          onChange={this.onUpdateRem.bind(this)}
-                          margin="normal"
-                          style={{fontSize:'14px'}}
-                        />
-                        <IconButton
-                          onClick={() => this.removeAllMedicine(index)}
-                          //disabled={!this.state.TempMedValue}
-                          style={{marginTop:'-40px',marginLeft:'80%'}}
-                        >
+                        <TextField id={itemx.id} name={`${index}`} className={classes.medtextField} value={this.state.RemList[index].name} onChange={this.onUpdateRem.bind(this)} margin="normal" style={{fontSize:'14px'}}/>
+                        <IconButton onClick={() => this.removeAllMedicine(index)} style={{marginTop:'-40px',marginLeft:'80%'}}>
                           <Cancel style={{color:'#7f7f7f'}}/>
                         </IconButton>
                       </Grid>
@@ -753,85 +766,6 @@ class TreatmentTableView extends React.Component {
                   ))
                   : null}
                   </div>
-              <div>
-              <Grid container>
-                {/* <Grid item xs={1}>
-                  <Fab color="secondary" size="small" disabled style={{marginTop:'10px'}}>
-
-                  </Fab>
-                </Grid> */}
-                <Grid item xs={3}>
-                  <TextField
-                    id=""
-                    label="Add New Medicine"
-                    value={this.state.TempMedValue}
-                    onChange={this.MedicineSearchKeywords}
-                    margin="normal"
-                    style={{fontSize:'14px',width:'85%',margin:'0px', padding:'0px'}}
-                  />
-                  {!this.state.TempMedValue=="" && !this.state.MedFlag?
-                  <div style={{marginLeft:'-35px',maxHeight:'200px', width:'100%', position:'relative', overflow:'auto',padding:'0px',marginTop:'0px'}}>
-                    <ul style={{marginTop:'-1px'}}>
-                      {!this.state.TempMedValue=="" && !this.state.MedFlag?Med:null}
-                    </ul>
-                  </div>:null
-                  }
-                </Grid>
-                <Grid item xs={2}>
-                  <TextField
-                    id="strength"
-                    label="Strength"
-                    className={classes.medtextField}
-                    value={this.state.TempStrenValue}
-                    onChange={this.StrenSearchKeywords}
-                    margin="normal"
-                    style={{fontSize:'14px'}}
-                  />
-                </Grid>
-                <Grid item xs={2}>
-                  <TextField
-                    id="type"
-                    label="Type"
-                    className={classes.medtextField}
-                    value={this.state.TempTypValue}
-                    onChange={this.TypeSearchKeywords}
-                    margin="normal"
-                    style={{fontSize:'14px'}}
-                  />
-                </Grid>
-                <Grid item xs={2}>
-                  <TextField
-                    id="frequency"
-                    label="Frequency"
-                    className={classes.medtextField}
-                    value={this.state.TempFreqValue}
-                    onChange={this.FreqSearchKeywords}
-                    margin="normal"
-                    style={{fontSize:'14px'}}
-                  />
-                </Grid>
-                <Grid item xs={3}>
-                  <TextField
-                    id="remark"
-                    label="Remark"
-                    className={classes.medtextField}
-                    value={this.state.TempRemValue}
-                    onChange={this.RemarkSearchKeywords}
-                    margin="normal"
-                    style={{fontSize:'14px'}}
-                  />
-                  <Tooltip title="Add Medicine">
-                    <IconButton
-                      onClick={this.addAllMedicine}
-                      //disabled={!this.state.TempMedValue}
-                      style={{marginTop:'-40px',marginLeft:'80%'}}
-                    >
-                      <AddIcon style={{color:'#7f7f7f'}}/>
-                    </IconButton>
-                  </Tooltip>
-                </Grid>
-              </Grid>
-              </div>
             </DialogContent>
             <DialogActions>
               <Button onClick={this.handleSaveTreatment} color="primary">
@@ -850,7 +784,7 @@ class TreatmentTableView extends React.Component {
           </IconButton>
 
           <div className={classes.addMedicineBtn}>
-              <Tooltip title="Add" aria-label="Add">
+              <Tooltip title="Add a new Treatment" aria-label="Add">
                 <Fab color="secondary" size="small" onClick={this.handleClickOpenAddTreatment}>
                   <AddIcon />
                 </Fab>
@@ -892,9 +826,6 @@ class TreatmentTableView extends React.Component {
             </TableFooter>
           </Table>
         </div>
-
-
-
       </Paper>
     );
   }

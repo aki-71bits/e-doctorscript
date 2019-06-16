@@ -11,7 +11,7 @@
 
   .grid-container {
     display: grid;
-    grid-template-rows: max-content max-content auto max-content ;
+    grid-template-rows: max-content max-content max-content  ;
     width: auto;
     padding: 0px;
   }
@@ -94,7 +94,7 @@
   }
   .content_main_left_root_cc > p{
     font-size: 16px;
-    padding: 20px 20px 0 0;
+    padding: 10px 10px 0 0;
     margin: 0px;
   }
   #cc_data > p{
@@ -103,7 +103,7 @@
   }
   .content_main_left_root_oe > p{
     font-size: 16px;
-    padding: 20px 20px 0 0;
+      padding: 10px 10px 0 0;
     margin: 0px;
   }
   #oe_data >p {
@@ -112,7 +112,7 @@
   }
   .content_main_left_root_tests > p{
     font-size: 16px;
-    padding: 20px 20px 0 0;
+    padding: 10px 10px 0 0;
     margin: 0px;
   }
   #test_data >p {
@@ -125,12 +125,12 @@
   }
   .content_main_left_root_treatment > p{
     font-size: 16px;
-    padding: 20px 20px 0 0;
+    padding: 10px 10px 0 0;
     margin: 0px;
   }
   .content_main_left_root_advice > p{
     font-size: 16px;
-    padding: 20px 20px 0 0;
+      padding: 10px 10px 0 0;
     margin: 0px;
   }
 
@@ -191,8 +191,8 @@
 
 <body>
   <div class="grid-container">
-    <div class="header">
-      <div class="header_root" id="header_root">
+    <div class="header" id="header_root">
+      <div class="header_root" >
 
         <div class="header_left_content">
           <img id="header_left_content_img" src="" alt="">
@@ -222,7 +222,7 @@
     <div class="content_patient" id="patientDetail">
       <div class="content_patient_root">
         <p id="patient_name"> Akibur Rahman</p>
-        <p id="patient_age"> 23yrs</p>
+        <p id="patient_age"> 27yrs</p>
         <p id="patient_sex"> Male</p>
         <p id="patient_mobile">Mobile: 012345678901</p>
         <p id="patient_id"> 123456789</p>
@@ -260,11 +260,14 @@
         </div>
         <div class=content_main_right_medicines"">
           <div id="med_data"></div>
+          <div class="patient_followup">
+            <p id="followup_date" style="padding: 5px 5px 5px 20px;"> </p>
+          </div>
         </div>
       </div>
     </div>
     <!-- <div class="content_main_right">6</div> -->
-  <div id="footer">7</div>
+  <!-- <div id="footer">7</div> -->
 </div>
 
 <script>
@@ -286,7 +289,7 @@ ipcRenderer.on("updateTemplate", (event, templateData) => {
 function setSettings(templateData){
   console.log(templateData);
   if (!templateData.preview) {
-    var sheet = document.styleSheets[0];
+    let sheet = document.styleSheets[0];
 
     let margin = `@page {size: auto;margin: ${templateData.margins.top}cm ${templateData.margins.right}cm ${templateData.margins.bottom}cm ${templateData.margins.left}cm;}`;
 
@@ -325,7 +328,21 @@ function setSettings(templateData){
       contentMainRight.setAttribute('style', 'width:100%');
     }
   }else {
-
+    if (header != null) {
+      header.style.display = "block";
+    }
+    if (!templateData.userTemplateSettings.patientDetail) {
+      if (patientDetail != null) {
+        patientDetail.style.display = "block";
+      }
+    }
+    if (!templateData.userTemplateSettings.leftSideBar) {
+      if (leftSideBar != null) {
+        leftSideBar.style.display = "block";
+      }
+      contentMainRight = document.querySelector('.content_main_right');
+      contentMainRight.setAttribute('style', 'width:100%');
+    }
     document.getElementById("dr_name").innerHTML = templateData.header_left_text.dr_name;
     document.getElementById("dr_education").innerHTML = templateData.header_left_text.dr_education;
     document.getElementById("dr_specialist").innerHTML = templateData.header_left_text.dr_specialist;
@@ -349,17 +366,25 @@ ipcRenderer.on("printPDF", (event, data) => {
   let oe_data="";
   let test_data="";
   let treatment_data="";
+  let i = 0;
   templateData.cc.forEach(function (arrayItem) {
-    cc_data += `<p> ${arrayItem.name} </p>`
+    i = i +1;
+    cc_data += `<p style="margin:0px, padding:0px"> ${i}. ${arrayItem.name} </p>`
   });
+  i = 0;
   templateData.oe.forEach(function (arrayItem) {
-    oe_data += `<p> ${arrayItem.name} </p>`
+    i=i+1;
+    oe_data += `<p style="margin:0px, padding:0px">${i}. ${arrayItem.name} </p>`
   });
+  i = 0;
   templateData.tests.forEach(function (arrayItem) {
-    test_data += `<p> ${arrayItem.name} </p>`
+    i=i+1;
+    test_data += `<p style="margin:0px, padding:0px">${i}. ${arrayItem.name} </p>`
   });
+  i = 0;
   templateData.treatment.forEach(function (arrayItem) {
-    treatment_data += `<p> ${arrayItem.name} </p>`
+    i=i+1;
+    treatment_data += `<p style="margin:0px, padding:0px">${i}. ${arrayItem.name} </p>`
   });
   document.getElementById("cc_data").innerHTML = cc_data;
   document.getElementById("oe_data").innerHTML = oe_data;
@@ -378,6 +403,10 @@ ipcRenderer.on("printPDF", (event, data) => {
   document.getElementById("patient_id").innerHTML = templateData.patient.id;
   document.getElementById("prescription_date").innerHTML = templateData.patient.date;
 
+//Follow up date
+  document.getElementById("followup_date").innerHTML = templateData.patient.followupdate;
+
+
 //set Rx image
 
   document.getElementById('content_main_right_rx_img')
@@ -386,8 +415,10 @@ ipcRenderer.on("printPDF", (event, data) => {
 
 //Set Medicines prescribed
   let med_data="";
+  i = 0;
   templateData.medicines.forEach(function (arrayItem) {
-    med_data += `<div class="medicine"> <span id="med_f"> <p id="med_type">${arrayItem.type}</p><p id="med_name">${arrayItem.product_name}</p><p id="med_strength">${arrayItem.strength}</p></span><span id="med_l"><p id="med_frequency"> ${arrayItem.frequency}</p><p id="med_remark">${arrayItem.remark} </p></span></div>`
+    i=i+1;
+    med_data += `<div class="medicine"> <span id="med_f"> ${i}. <p id="med_type">${arrayItem.type}</p><p id="med_name">${arrayItem.product_name}</p><p id="med_strength">${arrayItem.strength}</p></span><span id="med_l"><p id="med_frequency"> ${arrayItem.frequency}</p><p id="med_remark">${arrayItem.remark} </p></span></div>`
   });
   document.getElementById("med_data").innerHTML = med_data;
 

@@ -1,7 +1,1 @@
-import {IconSettingsPrinter , IconSettingsDocument} from './Icons';
-
-
-export {
-  IconSettingsPrinter,
-  IconSettingsDocument
-};
+export {IconSettingsPrinter , IconSettingsDocument, IconFollowUp} from './Icons';

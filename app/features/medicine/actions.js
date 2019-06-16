@@ -1,6 +1,5 @@
 import {constants} from './constants';
 import {services} from "./services";
-import {SNACKBAR_OPEN} from "../ui/constants";
 import type {Store} from "../../store/reducers/types";
 import {openSnackBar} from "../ui";
 
@@ -53,7 +52,7 @@ export function saveMedicine(medicine: object) {
       (error: any) => {
         console.log(error);
         const errorString = `Cannot save the Medicine`;
-        dispatch(failure(error));
+        dispatch( openSnackBar(errorString , 'error'));
       }
     );
   };
@@ -63,13 +62,68 @@ export function saveMedicine(medicine: object) {
     type: constants.SAVE_MEDICINE_SUCCESS,
     medicine
   }}
-  function failure(error) {
+
+}
+
+
+export function updateMedicine(medicine, id) {
+  console.log("Update medicine request");
+  return (dispatch: any , getState: Store) => {
+    const { securityState } = getState();
+    const { access_token } = securityState.user;
+    dispatch(request());
+
+    //add try catch
+    services.updateMedicine(access_token, medicine, id).then(
+      (response ) => {
+        dispatch(success(response));
+        dispatch({type: constants.RESET_MEDICINE_STATE});
+        dispatch( openSnackBar('Medicine Updated' , 'success'));
+      },
+      (error: any) => {
+        console.log(error);
+        const errorString = `Cannot update Medicine`;
+        dispatch( openSnackBar(errorString , 'error'));
+      }
+    );
+
+  };
+  function request() { return { type: constants.UPDATE_MEDICINE_REQUEST} }
+  function success(medicine) {
     return {
-      type:SNACKBAR_OPEN,
-      message: error,
-      variant: 'error'
-    }
-  }
+      type: constants.UPDATE_MEDICINE_SUCCESS,
+      payload: medicine
+    }}
+}
+export function deleteMedicine(id) {
+  console.log("Delete medicine request");
+  return (dispatch: any , getState: Store) => {
+    const { securityState } = getState();
+    const { access_token } = securityState.user;
+    dispatch(request());
+
+    //add try catch
+    services.deleteMedicine(access_token, id).then(
+      (response ) => {
+        dispatch(success(response));
+        dispatch({type: constants.RESET_MEDICINE_STATE});
+        dispatch( openSnackBar('Medicine Deleted' , 'success'));
+      },
+      (error: any) => {
+        console.log(error);
+        const errorString = `Cannot Delete Medicine`;
+        dispatch( openSnackBar(errorString , 'error'));
+      }
+    );
+
+  };
+  function request() { return { type: constants.DELETE_MEDICINE_REQUEST} }
+  function success(medicine) {
+    return {
+      type: constants.DELETE_MEDICINE_SUCCESS,
+      payload: medicine
+    }}
+
 }
 
 export function fetchMedicine() {
