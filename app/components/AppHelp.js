@@ -22,7 +22,8 @@ class AppHelp extends React.Component{
 
     return(
       <Grid container className={classes.root}>
-        <h1> Help View </h1>
+        <h1> This is still under construction! </h1>
+        <p>If you have any question or request, please drop a msg to +4915758475992</p>
       </Grid>
     )
   }
